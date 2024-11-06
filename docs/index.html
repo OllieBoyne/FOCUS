@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-L9CZWSSL8V"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-L9CZWSSL8V');
+    </script>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FOUND</title>
+    <link rel="shortcut icon" type="image/ico" href="images/logos/icon.ico" />
+    <link rel="icon" type="image/ico" href="images/logos/icon.ico" />
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+    <script src="https://kit.fontawesome.com/49f46e7382.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+        <div class="container is-max-desktop">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="http://www.eng.cam.ac.uk/">
+                    <img src="images/logos/Cam_bw.png" alt="University of Cambridge" style="height: 2.0rem;">
+                </a>
+                <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                </a>
+            </div>
+            <div id="navbarBasicExample" class="navbar-menu">
+                <div class="navbar-end">
+                    <a class="navbar-item navbar-right" href="https://3dvconf.github.io/2025/">
+                        <img src="images/logos/3dv2025_banner_cropped.png" alt="3DV 2025" style="height: 2.0rem;">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <section class="section">
+        <div class="container is-max-desktop">
+            <div class="container is-max-desktop">
+                <figure class="image">
+                    <img src="images/logos/focus_v1.png" class="scaled_center_img" style="max-height: 100px;width: auto;height: auto"/>
+                </figure>
+
+            </div>
+
+            <h1 class="title is-2 is-size-3-mobile is-spaced has-text-centered">
+                FOCUS - Multi-View Foot Reconstruction from Synthetically Trained Dense Correspondences
+
+            </h1>
+            <p class="subtitle is-5 has-text-centered has-text-grey">
+                <a href="https://wacv2024.thecvf.com/" style="color:grey;">WACV 2024</a>
+            </p>
+            <p class="subtitle is-6 has-text-centered authors mt-5" style="line-height: 1.5;">
+                <span>
+                    <a href="https://ollieboyne.github.io">Oliver Boyne</a>
+                </span>
+                <span>
+                    <a href="https://mi.eng.cam.ac.uk/~cipolla/">Roberto&nbsp;Cipolla</a>
+                </span>
+            </p>
+            <p class="subtitle is-6 has-text-centered authors mt-5" style="line-height: 1.5;">
+                <span>University of Cambridge</span>
+            </p>
+        </div>
+
+
+        <!-- LINKS -->
+        <div class="container is-max-desktop has-text-centered mt-5">
+            <table class="center">
+                <tr>
+                    <td><a href="https://arxiv.org/abs/2310.18279" class="button is-rounded is-link is-light mr-2">
+                <span class="icon"><i class="ai ai-arxiv"></i></span><span>arXiv [Coming soon]</span>
+            </a></td>
+                    <td> <a href="https://github.com/OllieBoyne" class="button is-rounded is-link is-light mr-2">
+                <span class="icon"><i class="fab fa-github"></i></span><span>Code [Coming soon]</span>
+            </a></td>
+
+                    <td> <a href="https://github.com/OllieBoyne/SynFoot" class="button is-rounded is-link is-light mr-2">
+                        <span class="icon"><img src="images/logos/synfoot_icon_v1.png"/></span><span>Synthetic dataset [Coming soon]</span></a> </td>
+
+                    <td> <a href="https://github.com/OllieBoyne/Foot3D" class="button is-rounded is-link is-light mr-2">
+                        <span class="icon"><img src="images/logos/synfoot_icon_v1.png"/></span><span>Reconstruction dataset</span></a> </td>
+
+                </tr>
+            </table>
+        </div>
+        </section>
+
+<!--    HEADLINE-->
+        <section class="section pt-0">
+            <div class="container is-max-desktop">
+                <h1>At a glance</h1>
+                <div class="content has-text-justified-desktop">
+                    <ul>
+                        <li> We produce a <a href="http://github.com/OllieBoyne/SynFoot" class="text-link">large photorealistic synthetic foot dataset</a> using <a href="http://ollieboyne.github.io/BlenderSynth" class="text-link">BlenderSynth</a>.</li>
+                        <li> We train a predictor to predict <a href="https://github.com/baegwangbin/surface_normal_uncertainty" class="text-link">surface normals and uncertainties</a>.</li>
+                        <li> We use surface normals and uncertainty to fit the <a href="http://ollieboyne.github.io/FIND" class="text-link">FIND</a> foot model to multiview images </li>
+                        <li> We beat <a href="https://github.com/baegwangbin/surface_normal_uncertainty" class="text-link">SOTA</a> on foot surface normal prediction, and <a href="https://colmap.github.io" class="text-link">COLMAP</a> on multiview reconstruction, also requiring far fewer views.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!--    Synthetics-->
+        <section class="section pt-0">
+            <div class="container is-max-desktop">
+                <h1>Synthetic data</h1>
+
+                <div class="content has-text-justified-desktop">
+
+                <p>We create a synthetic dataset, SynFoot, of 50K images of feet, along with surface normals, keypoints and masks.</p>
+
+                <p>These were created using our custom library <a href="http://ollieboyne.github.io/BlenderSynth" class="text-link">BlenderSynth</a>,
+                and are <a href="http://github.com/OllieBoyne/SynFoot" class="text-link">available for download</a>.</p>
+
+<!--                <figure>-->
+<!--                  <a href="http://github.com/OllieBoyne/SynFoot"><img src="images/results/synth_samples.png" alt="Samples from our synthetic dataset"/></a>-->
+<!--                  <figcaption><strong>Samples from our synthetic dataset. Left-to-right: RGB, mask, surface normals, keypoints.</strong></figcaption>-->
+<!--                </figure>-->
+
+                <figure>
+                    <div class="overlay-manager">
+                        <div class="radio-buttons" id="radio-buttons-synth">
+                              <!-- JavaScript will populate this -->
+                            </div>
+                        <input type="range" id="slider-synth" min="0" max="100" step="1" value="0">
+
+                    </div>
+                    <div class="image-wrapper" id="image-wrapper-synth">
+                          <!-- JavaScript will populate this -->
+                    </div>
+                    <figcaption><strong>Samples from synthetic dataset (drag the slider to view)</strong></figcaption>
+                </figure>
+
+                </div>
+
+
+
+            </div>
+        </section>
+
+        <!--    Surface normals-->
+        <section class="section pt-0">
+            <div class="container is-max-desktop">
+                <h1>Surface normal prediction</h1>
+
+                <div class="content has-text-justified-desktop">
+
+                <p>We train a network to predict both normals and corresponding uncertainties. </p>
+
+                <p>Even though our synthetic dataset only has 8 foot scans,
+                we find that, with aggressive data augmentation, our normal predictor achieves high quality surface normal predictions on in-the-wild images.</p>
+
+                <p>We obtain ground truth normals from our reconstruction dataset, and show that our method significantly outperforms
+                <a href="https://colmap.github.io" class="text-link">COLMAP</a>, and <a href="https://github.com/baegwangbin/surface_normal_uncertainty" class="text-link">SOTA</a> normal predictors.</p>
+
+                <figure>
+                    <div class="overlay-manager">
+                        <div class="radio-buttons" id="radio-buttons-normals">
+                              <!-- JavaScript will populate this -->
+                            </div>
+                        <input type="range" id="slider-normals" min="0" max="100" step="1" value="0">
+
+                    </div>
+                    <div class="image-wrapper" id="image-wrapper-normals">
+                          <!-- JavaScript will populate this -->
+                    </div>
+                    <figcaption><strong>In-the-wild predictions (drag the slider to view)</strong></figcaption>
+                </figure>
+
+
+                <figure>
+                  <img src="images/results/normal_prediction_1.png"/>
+                  <figcaption><strong>Surface normal prediction, compared with state-of-the-art</strong></figcaption>
+                </figure>
+
+<!--                <figure>-->
+<!--                  <img src="images/results/in-the-wild-1.png"/>-->
+<!--                  <figcaption><strong>Surface normal prediction on in-the-wild images</strong></figcaption>-->
+<!--                </figure>-->
+
+                    <img src="images/results/normals-table-1.png"/>
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!--    Fitting-->
+        <section class="section pt-0">
+            <div class="container is-max-desktop">
+                <h1>3D Reconstruction</h1>
+
+                <div class="content has-text-justified-desktop">
+
+                <p>We fit the parameters of the FIND model to the surface normals, using the uncertainty to weight the loss function.</p>
+                <p>We do this in a multiview setting, and produce better reconstructions than <a href="https://colmap.github.io" class="text-link">COLMAP</a>, evaluated on our new <a href="https://github.com/OllieBoyne/Foot3D", class="text-link">benchmark foot reconstruction dataset</a>, available for download.</p>
+                <p>We can do this accurately with as few as 3 views, whereas <a href="https://colmap.github.io" class="text-link">COLMAP</a> needs 15+.</p>
+
+
+                <figure>
+                  <img src="images/results/3d-constr-1.png"/>
+                  <figcaption><strong>3D reconstruction. Left: A single view of a multi-view reconstruction. Right: Our reconstructed model.</strong></figcaption>
+                </figure>
+
+
+                <figure>
+                  <img src="images/results/3d-table-1.png"/>
+                </figure>
+
+
+                <figure>
+                    <div style="width: 50%;margin-left: auto; margin-right: auto;">
+                    <img src="images/results/num-view-1.png"/>
+                    </div>
+                 <figcaption><strong>Reconstruction results based on number of input views. We show that COLMAP fails with fewer than 15 views, whereas we can handle as few as 3. Also our normal loss, and use of normal uncertainty both increase our reconstruction quality.</strong></figcaption>
+                </figure>
+
+
+                </div>
+
+            </div>
+        </section>
+
+
+
+    <section class="section pt-0">
+        <div class="container is-max-desktop">
+            <h1 class="title is-4">
+                Acknowledgements
+            </h1>
+
+            <div class="content has-text-justified-desktop">
+            <p>We acknowledge the collaboration and financial support of <a href="https://snapfeet.io/en/" class="text-link">Trya Srl</a>.</p>
+            </div>
+
+            <div class="content has-text-justified-desktop">
+                If you make use of this project, please cite the following paper:
+            </div>
+
+            <pre>@inproceedings{boyne2024found,
+            title={FOUND: {F}oot {O}ptimisation with {U}ncertain {N}ormals for Surface {D}eformation using Synthetic Data},
+            author={Boyne, Oliver, and Bae, Gwangbin, and Charles, James and Cipolla, Roberto},
+            booktitle={Winter Conference on Applications of Computer Vision (WACV)},
+            year={2024}
+        }</pre>
+
+        </div>
+    </section>
+
+
+    <footer class="footer">
+        <div class="content has-text-centered">
+            <p>
+                <img src="images/logos/Cam_bw.png" class="mt-5" alt="University of Cambridge" style="height: 2rem;">
+            </p>
+        </div>
+    </footer>
+
+<script src="slider.js"></script>
+</body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // Get all "navbar-burger" elements
+        const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+
+        // Check if there are any navbar burgers
+        if ($navbarBurgers.length > 0) {
+
+            // Add a click event on each of them
+            $navbarBurgers.forEach(el => {
+                el.addEventListener('click', () => {
+
+                    // Get the target from the "data-target" attribute
+                    const target = el.dataset.target;
+                    const $target = document.getElementById(target);
+
+                    // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+                    el.classList.toggle('is-active');
+                    $target.classList.toggle('is-active');
+
+                });
+            });
+        }
+    });
+</script>
+
+</html>
