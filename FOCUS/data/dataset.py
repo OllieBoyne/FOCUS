@@ -40,9 +40,9 @@ def load_view(directory: Path) -> View:
 
     return View(**image_data, **inference_data, calibration_data=calibration_data)
 
-def load_views(directory: Path) -> [View]:
+def load_views(directory: Path, ignore_list=('colmap', 'frames')) -> [View]:
     """Load in all views from a directory."""
-    return [load_view(directory / d) for d in sorted(os.listdir(directory)) if os.path.isdir(directory / d)]
+    return [load_view(directory / d) for d in sorted(os.listdir(directory)) if os.path.isdir(directory / d) and d not in ignore_list]
 
 def _load_image_data( directory):
     return {'rgb': _get_image(directory, "rgb")}

@@ -18,6 +18,7 @@ class FusionHyperparameters:
         screened_poisson_iters: Number of iterations for the screened Poisson reconstruction.
         match_method: Matching method to use, either "NN" or "Guided".
         nn_upsampling_factor: Upsampling factor for input image to nearest neighbour matching.
+        is_world_space: Whether the camera calibration is in world metric space.
 
     """
 
@@ -37,6 +38,8 @@ class FusionHyperparameters:
     screened_poisson_pointweight: int = 0
 
     nn_upsampling_factor: int = 8
+
+    is_world_space: bool = False
 
     @property
     def screened_poisson_parameters(self):

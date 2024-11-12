@@ -1,4 +1,4 @@
-from model import FootPredictorModel
+from FOCUS.toc_prediction.model import FootPredictorModel
 from pathlib import Path
 import cv2
 import os
@@ -29,8 +29,8 @@ def _preprocess_image(img: np.ndarray):
 
     return img
 
-def _predict_toc(imgs: np.ndarray, model: FootPredictorModel | Path, out_dir: Path, img_keys: list[str],
-                 device='cuda'):
+def predict_toc(imgs: np.ndarray, model: FootPredictorModel | Path, out_dir: Path, img_keys: list[str],
+                device='cuda'):
     """Make predictions using a trained model.
 
     imgs: RGBA images."""
@@ -57,6 +57,7 @@ def _predict_toc(imgs: np.ndarray, model: FootPredictorModel | Path, out_dir: Pa
 
     with torch.no_grad():
         with tqdm(dataloader) as progress_bar:
+            progress_bar.set_description("Predicting TOCs")
             for n, batch in enumerate(progress_bar):
 
                 rgb = batch['rgb'].to(device)
@@ -110,7 +111,6 @@ def _predict_toc(imgs: np.ndarray, model: FootPredictorModel | Path, out_dir: Pa
                     with open(os.path.join(out_folder, 'aux.json'), 'w') as f:
                         json.dump(aux_data, f)
 
-
 if __name__ == '__main__':
     src = '/Users/ollie/Library/CloudStorage/OneDrive-UniversityofCambridge/FIND2D/data/Foot3D/mono3d_v11_t=56/0035'
 
@@ -120,6 +120,6 @@ if __name__ == '__main__':
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    _predict_toc(imgs, Path('data/toc_model/resnet50_v12_t=44/model_best.pth'),
-                    Path('data/dummy_data_pred'), filenames, device=device
-                 )
+    predict_toc(imgs, Path('data/toc_model/resnet50_v12_t=44/model_best.pth'),
+                Path('data/dummy_data_pred'), filenames, device=device
+                )

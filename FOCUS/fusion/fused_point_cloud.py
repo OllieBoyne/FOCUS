@@ -18,6 +18,8 @@ class FusedPointCloud:
         self._reproj_points_2d = np.zeros((len(correspondences), num_views, 2))
         self._view_mask = np.zeros((len(correspondences), num_views))
 
+        self._transform = np.eye(4)
+
 
     @property
     def correspondences(self) -> list[Correspondence]:
@@ -25,7 +27,7 @@ class FusedPointCloud:
 
     @property
     def normals(self):
-        return [c.get_normal() for c, m in zip(self._correspondences, self._mask) if m]
+        return [self._transform[:3, :3] @ c.get_normal() for c, m in zip(self._correspondences, self._mask) if m]
 
     @property
     def points_3d(self):
@@ -65,6 +67,10 @@ class FusedPointCloud:
         new_length = sum(self._mask)
 
         print(f"[Outliers] Filter {previous_length} -> {new_length} ({new_length - previous_length}).")
+
+    def apply_transform(self, T: np.ndarray):
+        self._transform = T @ self._transform
+        self._points_3d = (T @ np.pad(self._points_3d, ((0, 0), (0, 1)), constant_values=1).T).T[..., :3]
 
     def filter_by_reprojection_error(self, threshold: float):
         previous_length = sum(self._mask)
