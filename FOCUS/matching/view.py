@@ -24,7 +24,9 @@ class FusionView:
     normal_image: np.ndarray
     normal_world: np.ndarray
     mask: np.ndarray
+    rgb: np.ndarray
     idx: int
+    key: str = None
 
     _F = {}  # fundamental matrices to all other views.
 
@@ -37,6 +39,8 @@ class FusionView:
         mask,
         idx: int,
         calibration_data: dict,
+        key: str = None,
+        rgb: np.ndarray = None,
     ):
 
         self.toc_image = toc_image
@@ -56,7 +60,6 @@ class FusionView:
         self.calibration_data = calibration_data
 
         # Calculate normal in world frame
-        # TODO: Experimental, currently not working.
         self.normal_world = ((self.R @ normal_image.reshape(-1, 3).T).T).reshape(
             *normal_image.shape
         )
@@ -68,6 +71,9 @@ class FusionView:
 
         self._nn = None
 
+        self.key = key
+        self.rgb = rgb
+
     @classmethod
     def from_view(cls, view: View, idx: int = 0):
         return cls(
@@ -78,11 +84,13 @@ class FusionView:
             view.mask,
             idx,
             calibration_data=view.calibration_data,
+            key=view.key,
+            rgb=view.rgb,
         )
 
     @property
     def R(self) -> np.ndarray:
-        return self.calibration_data["R"]
+        return self.calibration_data.get("R", np.eye(3))
 
     @property
     def T(self) -> np.ndarray:

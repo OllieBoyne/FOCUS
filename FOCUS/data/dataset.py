@@ -26,6 +26,7 @@ class View:
     norm_xyz: np.ndarray
 
     calibration_data: dict
+    key: str = None
 
     def __post_init__(self):
         self.norm_xyz = normals_utils.rgb2xyz(self.norm_rgb)
@@ -38,7 +39,9 @@ def load_view(directory: Path) -> View:
     inference_data = _load_inference_data(directory)
     calibration_data = _load_calibration_data(directory)
 
-    return View(**image_data, **inference_data, calibration_data=calibration_data)
+    key = directory.name
+
+    return View(**image_data, **inference_data, calibration_data=calibration_data, key=key)
 
 def load_views(directory: Path, ignore_list=('colmap', 'frames')) -> [View]:
     """Load in all views from a directory."""

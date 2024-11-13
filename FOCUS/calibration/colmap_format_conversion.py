@@ -14,15 +14,12 @@ parser.add_argument('--out_dir', type=str, help="Path to the output directory.")
 def colmap2pytorch3d(colmap_sparse_dir):
 	sparse_dir = colmap_sparse_dir
 
-	# Get first available sparse fit.
-	f = None
-	for f in os.listdir(sparse_dir):
-		if f.isdigit():
-			f = os.path.join(sparse_dir, f)
-			break
-	else:
+	# Get last available sparse fit.
+	sparse_fits = [f for f in os.listdir(sparse_dir) if f.isdigit()]
+	if not sparse_fits:
 		raise FileNotFoundError(f"No model found for {colmap_sparse_dir}")
 
+	f = os.path.join(sparse_dir, max(sparse_fits, key=int))
 	cameras, images, points3D = read_model(path=f, ext='.bin')
 
 	# From https://github.com/facebookresearch/pytorch3d/issues/1120

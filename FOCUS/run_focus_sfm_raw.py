@@ -61,7 +61,8 @@ if __name__ == "__main__":
                 args.output_folder, filenames, device=device
                 )
 
-    run_colmap.run_colmap(image_dir, args.output_folder, colmap_exe=args.colmap_exe)
+    run_colmap.run_colmap(image_dir, args.output_folder, colmap_exe=args.colmap_exe,
+                          predictions_folder=args.output_folder)
 
     views = load_views(args.output_folder)
 

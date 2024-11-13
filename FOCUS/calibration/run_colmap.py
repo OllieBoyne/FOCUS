@@ -7,6 +7,7 @@ from tqdm import tqdm
 import json
 
 from FOCUS.calibration.colmap_format_conversion import colmap2pytorch3d
+from FOCUS.calibration.custom_matches_colmap import toc_matches_to_database
 
 ACCEPTED_IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
@@ -16,7 +17,16 @@ def _check_colmap(colmap_exe: str = 'colmap'):
     except FileNotFoundError:
         raise FileNotFoundError(f'`{colmap_exe}` does not run. Make sure COLMAP is installed, and either added to PATH, or the `colmap_exe` argument points to the correct location.')
 
-def run_colmap(image_dir: Path, output_dir: Path, colmap_exe: str = 'colmap'):
+def run_colmap(image_dir: Path, output_dir: Path, colmap_exe: str = 'colmap',
+               predictions_folder: Path = None):
+    """
+
+    :param image_dir:
+    :param output_dir:
+    :param colmap_exe:
+    :param predictions_folder: If given, use these for custom matches. Otherwise, use COLMAP feature extraction & matching.
+    :return:
+    """
 
     _check_colmap(colmap_exe)
 
@@ -28,17 +38,21 @@ def run_colmap(image_dir: Path, output_dir: Path, colmap_exe: str = 'colmap'):
     sparse_dir = workspace_dir / 'sparse'
     sparse_dir.mkdir(exist_ok=True)
 
+    commands = {}
+    if predictions_folder is not None:
+        toc_matches_to_database(image_dir, predictions_folder, workspace_dir)
 
-    commands = {
-        'feature_extractor': {
-            'image_path': image_dir,
-            'database_path': database_path,
-            'ImageReader.single_camera': '1'
-        },
-        'exhaustive_matcher': {'database_path': database_path},
-        		'mapper': {'database_path': database_path, 'image_path': image_dir, 'output_path': sparse_dir,
-               'Mapper.ba_refine_focal_length': '1'},
-    }
+    else:
+
+        commands['feature_extractor'] = {
+                'image_path': image_dir,
+                'database_path': database_path,
+                'ImageReader.single_camera': '1'
+            }
+        commands['exhaustive_matcher'] = {'database_path': database_path}
+
+    commands['mapper'] = {'database_path': database_path, 'image_path': image_dir, 'output_path': sparse_dir,
+               'Mapper.ba_refine_focal_length': '1'}
 
     with tqdm(commands.items()) as progress_bar:
         for method, command in progress_bar:
@@ -46,7 +60,7 @@ def run_colmap(image_dir: Path, output_dir: Path, colmap_exe: str = 'colmap'):
 
             args = [colmap_exe, method]
             for k, v in command.items():
-                args += [f'--{k}', v]
+                args += [f'--{k}', str(v)]
 
             # Run subprocess check call, saving output to log file.
             logfile = workspace_dir / f'{method}_log.txt'

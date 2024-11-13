@@ -70,7 +70,7 @@ def fuse(views: [View], output_folder: Path, hyperparameters: FusionHyperparamet
         # Need to align the mesh to world space.
         T, *_ = trimesh.registration.procrustes(point_cloud.points_3d, point_cloud.toc, reflection=False)
         point_cloud.apply_transform(T)
-        visualize.show_pointcloud_with_normals(point_cloud.points_3d, np.array(point_cloud.normals), colors=point_cloud.toc)
+        # visualize.show_pointcloud_with_normals(point_cloud.points_3d, np.array(point_cloud.normals), colors=point_cloud.toc)
 
     point_cloud.remove_outliers(std_ratio=5.0)
 
