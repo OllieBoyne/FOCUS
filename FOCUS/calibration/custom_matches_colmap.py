@@ -39,7 +39,6 @@ def toc_matches_to_database(image_dir: Path, predictions_dir: Path, output_dir: 
         np.array((768, image_width / 2, image_height / 2, 0.0)), # f, cx, cy, k
     )
     camera_id1 = db.add_camera(model1, width1, height1, params1)
-    print('Camera ID:', camera_id1)
 
     for v in views:
         key = v.key

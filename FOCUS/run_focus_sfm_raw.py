@@ -4,10 +4,12 @@ import argparse
 
 from FOCUS.fusion import fuse
 from FOCUS.data.dataset import load_views
+from FOCUS.data import io
 
 from FOCUS.toc_prediction import predict as predict_toc_module
 from FOCUS.calibration import run_colmap
-import torch
+import cv2
+from tqdm import tqdm
 
 from pathlib import Path
 
@@ -24,41 +26,37 @@ parser.add_argument('--toc_model_path', type=Path, help='Path to predictor model
 
 # TODO: Add hyperparams
 
-if __name__ == "__main__":
-    args = parser.parse_args()
+def _frames_from_video(args):
+    image_dir = args.output_folder / 'frames'
+    image_dir.mkdir(exist_ok=True, parents=True)
 
-    image_dir = args.img_dir
-
-    # TODO: move to own function, add tqdm.
-    if args.video_path is not None:
-        import cv2
-        image_dir = args.output_folder / 'frames'
-        image_dir.mkdir(exist_ok=True, parents=True)
-
-        cap = cv2.VideoCapture(str(args.video_path))
-        frames = []
-        num_video_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        frame_step = num_video_frames // args.num_frames
+    cap = cv2.VideoCapture(str(args.video_path))
+    num_video_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    frame_step = num_video_frames // args.num_frames
+    with tqdm(total=args.num_frames, desc="Extracting frames") as pbar:
         for i in range(args.num_frames):
             ret, frame = cap.read()
             if not ret:
                 break
             cv2.imwrite(str(image_dir / f'{i:06d}.png'), frame)
             cap.set(cv2.CAP_PROP_POS_FRAMES, i * frame_step)
-        cap.release()
-        imgs = frames
+            pbar.update(1)
 
-    # TODO: tidy
-    import os, cv2
-    import numpy as np
-    filenames = sorted([os.path.splitext(f)[0] for f in os.listdir(image_dir) if f.endswith('.png')])
-    imgs = [cv2.cvtColor(cv2.imread(os.path.join(image_dir, f + '.png')), cv2.COLOR_BGR2RGB) for f in filenames]
-    imgs = np.array(imgs)
+    cap.release()
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+if __name__ == "__main__":
+    args = parser.parse_args()
 
-    predict_toc_module.predict_toc(imgs, args.toc_model_path,
-                args.output_folder, filenames, device=device
+    image_dir = args.img_dir
+
+    if args.video_path is not None:
+        _frames_from_video(args)
+        image_dir = args.output_folder / 'frames'
+
+    images, keys = io.load_images_from_dir(image_dir)
+
+    predict_toc_module.predict_toc(images, args.toc_model_path,
+                args.output_folder, keys
                 )
 
     run_colmap.run_colmap(image_dir, args.output_folder, colmap_exe=args.colmap_exe,
