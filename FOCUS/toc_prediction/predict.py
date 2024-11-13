@@ -30,10 +30,20 @@ def _preprocess_image(img: np.ndarray):
     return img
 
 def predict_toc(imgs: np.ndarray, model: FootPredictorModel | Path, out_dir: Path, img_keys: list[str],
-                device='cuda'):
+                device=None):
     """Make predictions using a trained model.
 
     imgs: RGBA images."""
+
+    if device is None:
+        if torch.cuda.is_available():
+            device = 'cuda'
+
+        elif torch.backends.mps.is_available():
+            device = 'mps'
+
+        else:
+            device = 'cpu'
 
     N = len(imgs)
 
@@ -118,8 +128,6 @@ if __name__ == '__main__':
     imgs = [cv2.cvtColor(cv2.imread(os.path.join(src, 'rgb', f + '.png')), cv2.COLOR_BGR2RGB) for f in filenames]
     imgs = np.array(imgs)
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
     predict_toc(imgs, Path('data/toc_model/resnet50_v12_t=44/model_best.pth'),
-                Path('data/dummy_data_pred'), filenames, device=device
+                Path('data/dummy_data_pred'), filenames
                 )
