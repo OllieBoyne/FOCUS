@@ -65,11 +65,23 @@ def fuse(views: [View], output_folder: Path, hyperparameters: FusionHyperparamet
         point_cloud.cutoff_points(hyperparameters.mesh_cutoff_heights[0], "below")
 
     else:
-        point_cloud.remove_outliers(std_ratio=5.0)
 
-        # Need to align the mesh to world space.
-        T, *_ = trimesh.registration.procrustes(point_cloud.points_3d, point_cloud.toc, reflection=False)
+        # Some extra filtering steps found to improve performance on non-world space data.
+        point_cloud.remove_outliers(std_ratio=5.0)
+        point_cloud.remove_outliers_by_centroid_distance(frac=0.01)
+
+        # Need to align the mesh to world space (using TOC).
+        T, a, cost = trimesh.registration.procrustes(point_cloud.points_3d, point_cloud.toc, reflection=True)
+
+        # Remove reflection if it exists.
+        if np.linalg.det(T[:3, :3]) < 0:
+            # re-reflect along y
+            refl_y = np.eye(4)
+            refl_y[1, 1] = -1
+            T = refl_y @ T
+
         point_cloud.apply_transform(T)
+
         # visualize.show_pointcloud_with_normals(point_cloud.points_3d, np.array(point_cloud.normals), colors=point_cloud.toc)
 
     point_cloud.remove_outliers(std_ratio=5.0)

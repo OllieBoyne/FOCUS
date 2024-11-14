@@ -22,7 +22,7 @@ class FusionHyperparameters:
 
     """
 
-    samples_per_image: int = 3000
+    samples_per_image: int = 1000
     toc_correspondence_threshold: float = 0.002
     toc_uncertainty_threshold: float = 100.0
     toc_height_limit: float = 1.0

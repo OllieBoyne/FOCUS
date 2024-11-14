@@ -68,9 +68,20 @@ class FusedPointCloud:
 
         print(f"[Outliers] Filter {previous_length} -> {new_length} ({new_length - previous_length}).")
 
+    def remove_outliers_by_centroid_distance(self, frac: float = 0.01):
+        """Remove outliers by distance from the centroid."""
+        previous_length = sum(self._mask)
+        centroid = np.mean(self.points_3d, axis=0)
+        distances = np.linalg.norm(self.points_3d - centroid, axis=-1)
+        mask = distances < np.percentile(distances, 100 * (1-frac))
+        self._mask[self._mask] = mask
+        new_length = sum(self._mask)
+
+        print(f"[Outliers by centroid] Filter {previous_length} -> {new_length} ({new_length - previous_length}).")
+
     def apply_transform(self, T: np.ndarray):
         self._transform = T @ self._transform
-        self._points_3d = (T @ np.pad(self._points_3d, ((0, 0), (0, 1)), constant_values=1).T).T[..., :3]
+        self._points_3d = trimesh.transform_points(self._points_3d, T)
 
     def filter_by_reprojection_error(self, threshold: float):
         previous_length = sum(self._mask)
