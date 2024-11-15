@@ -5,7 +5,7 @@ class FusionHyperparameters:
     """Hyperparameters for the fusion process.
 
     Args:
-        samples_per_image: Number of samples to collect for correspondences per image.
+        num_correspondences: Number of samples to collect for correspondences across all images.
         toc_correspondence_threshold: Maximum L2 distance between two TOC values to be considered a valid correspondence.
         toc_uncertainty_threshold: Discard correspondences with average TOC uncertainty above this value.
         toc_height_limit: Discard correspondences with a TOC z-value above this value.
@@ -22,7 +22,7 @@ class FusionHyperparameters:
 
     """
 
-    samples_per_image: int = 1000
+    num_correspondences: int = 20_000
     toc_correspondence_threshold: float = 0.002
     toc_uncertainty_threshold: float = 100.0
     toc_height_limit: float = 1.0

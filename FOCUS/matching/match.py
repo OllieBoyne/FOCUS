@@ -4,7 +4,7 @@ from FOCUS.matching import view
 from FOCUS.matching import correspondence
 import torch
 
-def find_matches(views: [view.View], samples_per_image: int,
+def find_matches(views: [view.View], num_correspondences: int,
                  max_dist: float = 0.002,
                  subpixel_scaling: int = 8
                  ) -> [correspondence.Correspondence]:
@@ -14,6 +14,7 @@ def find_matches(views: [view.View], samples_per_image: int,
 
     torch.manual_seed(10) # TODO: add seed to hyperparameters
 
+    samples_per_image = num_correspondences // len(views)
     for view in views:
         correspondences += view.sample_in_mask(samples_per_image)
 

@@ -50,7 +50,7 @@ def fuse(views: [View], output_folder: Path, hyperparameters: FusionHyperparamet
     projection_matrices = triangulation.cameras_to_projection_matrix(cameras)
 
     # Build an initial sample of correspondences.
-    correspondences = match.find_matches(views, samples_per_image=hyperparameters.samples_per_image,
+    correspondences = match.find_matches(views, num_correspondences=hyperparameters.num_correspondences,
                                          max_dist=hyperparameters.toc_correspondence_threshold,
                                          subpixel_scaling=hyperparameters.nn_upsampling_factor)
 
@@ -71,16 +71,17 @@ def fuse(views: [View], output_folder: Path, hyperparameters: FusionHyperparamet
         point_cloud.remove_outliers_by_centroid_distance(frac=0.01)
 
         # Need to align the mesh to world space (using TOC).
-        T, a, cost = trimesh.registration.procrustes(point_cloud.points_3d, point_cloud.toc, reflection=True)
-
-        # Remove reflection if it exists.
-        if np.linalg.det(T[:3, :3]) < 0:
-            # re-reflect along y
-            refl_y = np.eye(4)
-            refl_y[1, 1] = -1
-            T = refl_y @ T
-
-        point_cloud.apply_transform(T)
+        # TODO: Implement as separate output.
+        # T, a, cost = trimesh.registration.procrustes(point_cloud.points_3d, point_cloud.toc, reflection=True)
+        #
+        # # Remove reflection if it exists.
+        # if np.linalg.det(T[:3, :3]) < 0:
+        #     # re-reflect along y
+        #     refl_y = np.eye(4)
+        #     refl_y[1, 1] = -1
+        #     T = refl_y @ T
+        #
+        # point_cloud.apply_transform(T)
 
         # visualize.show_pointcloud_with_normals(point_cloud.points_3d, np.array(point_cloud.normals), colors=point_cloud.toc)
 
