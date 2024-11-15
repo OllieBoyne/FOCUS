@@ -14,10 +14,7 @@ def toc_matches_to_database(image_dir: Path, predictions_dir: Path, output_dir: 
     views = load_views(predictions_dir)
     views = [view.FusionView.from_view(v, idx=i) for i, v in enumerate(views)]
 
-    NUM_CORRESPONDENCES = 2500
-    samples_per_image = NUM_CORRESPONDENCES // len(views)
-
-    correspondences = match.find_matches(views, samples_per_image=samples_per_image,
+    correspondences = match.find_matches(views, num_correspondences=2500,
                                          max_dist=0.002,
                                          subpixel_scaling=8)
 
