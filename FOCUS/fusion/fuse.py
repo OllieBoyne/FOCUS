@@ -41,8 +41,8 @@ def fuse(views: [View], output_folder: Path, hyperparameters: FusionHyperparamet
     views = new_views
 
     cameras = camera.Camera(
-        R=torch.stack([torch.from_numpy(v.R) for v in views]),
-        T=torch.stack([torch.from_numpy(v.T) for v in views]),
+        R=torch.stack([torch.from_numpy(v.R) for v in views]).float(),
+        T=torch.stack([torch.from_numpy(v.T) for v in views]).float(),
         size=torch.stack([torch.tensor(v.image_shape) for v in views]),
         focal_length=torch.stack([torch.tensor([v.f]) for v in views]),
     )

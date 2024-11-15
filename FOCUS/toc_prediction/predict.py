@@ -7,6 +7,7 @@ from FOCUS.utils import image as image_utils
 from tqdm import tqdm
 from FOCUS.utils import normals as normals_utils
 import json
+from FOCUS.utils.torch import get_device
 
 import torch
 import numpy as np
@@ -35,15 +36,7 @@ def predict_toc(imgs: np.ndarray, model: FootPredictorModel | Path, out_dir: Pat
 
     imgs: RGBA images."""
 
-    if device is None:
-        if torch.cuda.is_available():
-            device = 'cuda'
-
-        elif torch.backends.mps.is_available():
-            device = 'mps'
-
-        else:
-            device = 'cpu'
+    device = get_device(device)
 
     N = len(imgs)
 
