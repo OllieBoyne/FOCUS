@@ -12,6 +12,7 @@ from FOCUS.calibration import run_colmap
 import subprocess
 import shutil
 import os
+import sys
 
 from pathlib import Path
 
@@ -25,6 +26,12 @@ parser.add_argument('--num_frames', type=int, help='Number of frames to extract 
 
 parser.add_argument('--colmap_exe', default='colmap', help='Path to COLMAP executable.')
 parser.add_argument('--toc_model_path', type=Path, help='Path to predictor model.', default='data/toc_model/resnet50_v12_t=44/model_best.pth')
+
+parser.add_argument('--render', action='store_true', help='Render the output meshes.')
+parser.add_argument('--produce_videos', action='store_true', help='Produce videos of TOC, normals etc.')
+
+render_meshes_script = 'FOCUS/vis/render_meshes.py'
+produce_videos_script = 'FOCUS/vis/video_to_predictions.py'
 
 # TODO: Add hyperparams
 
@@ -76,3 +83,11 @@ if __name__ == "__main__":
 
     hyperparams = fuse.FusionHyperparameters(is_world_space=False)
     fuse.fuse(views, args.output_folder, hyperparameters=hyperparams)
+
+    if args.render:
+        subprocess.run([sys.executable, render_meshes_script, '--input_directory', str(args.output_folder)],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    if args.produce_videos:
+        subprocess.run([sys.executable, produce_videos_script, '--predictions_folder', str(args.output_folder),
+                        '--output_folder', str(args.output_folder / 'videos')])

@@ -59,9 +59,9 @@ def predict_toc(imgs: np.ndarray, model: FootPredictorModel | Path, out_dir: Pat
     dataloader = torch.utils.data.DataLoader(Dataset(), batch_size=10, shuffle=False)
 
     with torch.no_grad():
-        with tqdm(dataloader) as progress_bar:
+        with tqdm(total=N) as progress_bar:
             progress_bar.set_description("Predicting TOCs")
-            for n, batch in enumerate(progress_bar):
+            for n, batch in enumerate(dataloader):
 
                 rgb = batch['rgb'].to(device)
                 predictions = model(rgb)
@@ -113,6 +113,8 @@ def predict_toc(imgs: np.ndarray, model: FootPredictorModel | Path, out_dir: Pat
 
                     with open(os.path.join(out_folder, 'aux.json'), 'w') as f:
                         json.dump(aux_data, f)
+
+                    progress_bar.update(1)
 
 if __name__ == '__main__':
     src = '/Users/ollie/Library/CloudStorage/OneDrive-UniversityofCambridge/FIND2D/data/Foot3D/mono3d_v11_t=56/0035'
