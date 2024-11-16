@@ -22,6 +22,8 @@ bsyn.run_this_script(open_blender=False, **vars(args))
 # Note this has to be called after run_this_script due to sys path handling.
 from FOCUS.data.dataset import load_views
 from pathlib import Path
+import numpy as np
+import cv2
 
 import mathutils
 
@@ -37,7 +39,9 @@ def main(input_directory):
     bsyn.render.set_cycles_samples(10)
 
     # Set up world lighting
+    bsyn.world.set_transparent(True)
     bsyn.world.set_color((1.0, 1.0, 1.0))
+    bsyn.world.set_intensity(0.1)
 
     mesh_path = os.path.join(input_directory, 'mesh.obj')
     if not os.path.exists(mesh_path):
@@ -64,7 +68,6 @@ def main(input_directory):
         camera = bsyn.Camera.create(view.key)
 
         R = view.calibration_data['R']
-        T = view.calibration_data['T']
         C = view.calibration_data['C']
 
         focal_length_pixels = view.calibration_data['f']
@@ -79,13 +82,33 @@ def main(input_directory):
 
         cameras.append(camera)
 
+    #Pick the central most camera, add a spotlight to it.
+    cameras_centroid = mathutils.Vector(np.mean([c.location for c in cameras], axis=0))
+    closest_camera_idx = min(range(len(cameras)), key=lambda i: (cameras[i].location - cameras_centroid).length)
+
+    light = bsyn.Light.create('SPOT', intensity=2e3)
+    constr = light.object.constraints.new(type='COPY_TRANSFORMS')
+    constr.target = cameras[closest_camera_idx].object
+
+    light.object.data.spot_size = 1.22 # ~70 degrees
+
     comp.render(camera=cameras)
 
     # Move to output directories.
     for view in views:
         src_path = os.path.join(tmp_output_dir, f"{view.key}_mesh.png")
         dst_path = os.path.join(input_directory, view.key, "mesh.png")
-        shutil.copy(Path(src_path), Path(dst_path))
+
+        # Load and place over the original image.
+        original_image = (view.rgb * 255).astype(np.uint8)
+        rendered_image = cv2.imread(src_path, cv2.IMREAD_UNCHANGED)
+        rendered_image = cv2.cvtColor(rendered_image, cv2.COLOR_BGRA2RGBA)
+
+        new_image = original_image.copy()
+        mask = rendered_image[..., -1] > 0
+        new_image[mask] = rendered_image[..., :3][mask]
+
+        cv2.imwrite(dst_path, cv2.cvtColor(new_image, cv2.COLOR_RGBA2BGRA))
 
 
 
