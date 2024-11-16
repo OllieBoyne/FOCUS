@@ -76,6 +76,7 @@ def _load_calibration_data(directory: Path):
     return {
         'R': np.array(data['R']).T, # Transpose to convert from COLMAP to PyTorch3D coordinate system.
         'T': np.array(data['T']),
+        'C': np.array(data['C']),
         'cx': data['cx'],
         'cy': data['cy'],
         'f': data['f'],

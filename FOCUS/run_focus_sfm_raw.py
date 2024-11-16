@@ -8,6 +8,7 @@ from FOCUS.data import io
 
 from FOCUS.toc_prediction import predict as predict_toc_module
 from FOCUS.calibration import run_colmap
+from FOCUS.utils import image as image_utils
 import cv2
 from tqdm import tqdm
 
@@ -19,7 +20,7 @@ parser.add_argument("--output_folder", type=Path, help="Path to output folder.")
 
 # From video.
 parser.add_argument('--video_path', type=Path, default=None, help='Path to video file.')
-parser.add_argument('--num_frames', type=int, help='Number of frames to extract from video.', default=20)
+parser.add_argument('--num_frames', type=int, help='Number of frames to extract from video (-1 = all).', default=20)
 
 parser.add_argument('--colmap_exe', default='colmap', help='Path to COLMAP executable.')
 parser.add_argument('--toc_model_path', type=Path, help='Path to predictor model.', default='data/toc_model/resnet50_v12_t=44/model_best.pth')
@@ -32,12 +33,20 @@ def _frames_from_video(args):
 
     cap = cv2.VideoCapture(str(args.video_path))
     num_video_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    frame_step = num_video_frames // args.num_frames
+
+    if args.num_frames == -1:
+        frame_step = 1
+    else:
+        frame_step = num_video_frames // args.num_frames
+
     with tqdm(total=args.num_frames, desc="Extracting frames") as pbar:
         for i in range(args.num_frames):
             ret, frame = cap.read()
             if not ret:
                 break
+
+            # Resize to 640x480
+            frame = image_utils.resize_preserve_aspect(frame, (480, 640))
             cv2.imwrite(str(image_dir / f'{i:06d}.png'), frame)
             cap.set(cv2.CAP_PROP_POS_FRAMES, i * frame_step)
             pbar.update(1)
