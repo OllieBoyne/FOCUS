@@ -7,7 +7,7 @@ from FOCUS.utils import image as image_utils
 from tqdm import tqdm
 from FOCUS.utils import normals as normals_utils
 import json
-from FOCUS.utils.torch import get_device
+from FOCUS.utils.torch_utils import get_device
 
 import torch
 import numpy as np
