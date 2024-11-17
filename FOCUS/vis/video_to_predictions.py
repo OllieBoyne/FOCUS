@@ -87,7 +87,7 @@ def run(args):
         overlay_text_on_video(args.output_folder / f'{ftype}.mp4', ftype.upper(), temp_vid)
         temp_vids.append(temp_vid)
 
-    hstack_videos(args.output_folder / 'stacked.mp4', temp_vids, num_loops=5)
+    hstack_videos(args.output_folder / 'stacked.mp4', temp_vids)
 
 if __name__ == "__main__":
     args = parser.parse_args()
