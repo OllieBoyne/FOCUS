@@ -222,17 +222,6 @@ class FusionView:
 
         return x_new, y_new, upsampled_img[y_new_upsampled, x_new_upsampled]
 
-    def get_F(self, other_idx, projection_matrices):
-        if other_idx in self._F:
-            return self._F[other_idx]
-
-        F = triangulation.compute_fundamental_matrix(
-            projection_matrices[other_idx].numpy(),
-            projection_matrices[self.idx].numpy(),
-        )
-        self._F[other_idx] = F
-        return F
-
     def sample_in_mask(self, n_samples) -> list[Correspondence]:
         # TODO: make not PyTorch dependent?
         mask_batch = torch.from_numpy(self.mask).unsqueeze(0)
