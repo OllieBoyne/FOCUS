@@ -20,10 +20,19 @@ ctypedef np.int32_t DTYPE32i_t
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
-cdef np.ndarray[DTYPE32_t, ndim=4] _rgb_match(np.ndarray[DTYPE32_t, ndim=3] image, np.ndarray[DTYPE32i_t, ndim=2] corner, int width, int height, np.ndarray[DTYPE32_t, ndim=2] target_color):
-    """Extract N=len(corner) best matches from image ROIs from image.
-    
-    Return relative to [N x 3] baseline.
+cdef np.ndarray[DTYPE32_t, ndim=1] _rgb_match(np.ndarray[DTYPE32_t, ndim=3] image, np.ndarray[DTYPE32i_t, ndim=2] corner, int width, int height, np.ndarray[DTYPE32_t, ndim=2] target_color):
+    """
+    Extract N=len(corner) best matches from image ROIs from image.
+
+    Args:
+        image (np.ndarray[DTYPE32_t, ndim=3]): The input image array.
+        corner (np.ndarray[DTYPE32i_t, ndim=2]): Array of corner points.
+        width (int): Width of the ROI.
+        height (int): Height of the ROI.
+        target_color (np.ndarray[DTYPE32_t, ndim=2]): Target color array.
+
+    Returns:
+        np.ndarray[DTYPE32_t, ndim=1]: Array of best matches, as an index into the ROI from the corner.
     """
     cdef int N = corner.shape[0]
 
