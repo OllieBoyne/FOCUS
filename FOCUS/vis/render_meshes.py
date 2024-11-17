@@ -50,6 +50,11 @@ def main(input_directory):
     mesh = bsyn.Mesh.from_obj(mesh_path)
     mesh.rotation_euler = (0, 0, 0)
 
+    # To ensure consistent lighting, we will scale the whole scene to fit the average dimension of the mesh to 1m.
+    sf = 1 / np.mean(mesh.dimensions)
+    mesh.scale = (sf, sf, sf)
+    mesh.location = sf * mesh.location
+
     views = load_views(Path(input_directory))
 
     H, W, _ = views[0].rgb.shape
@@ -68,7 +73,7 @@ def main(input_directory):
         camera = bsyn.Camera.create(view.key)
 
         R = view.calibration_data['R']
-        C = view.calibration_data['C']
+        C = view.calibration_data['C'] * sf
 
         focal_length_pixels = view.calibration_data['f']
         sensor_width = camera.object.data.sensor_width
@@ -86,7 +91,7 @@ def main(input_directory):
     cameras_centroid = mathutils.Vector(np.mean([c.location for c in cameras], axis=0))
     closest_camera_idx = min(range(len(cameras)), key=lambda i: (cameras[i].location - cameras_centroid).length)
 
-    light = bsyn.Light.create('SPOT', intensity=2e3)
+    light = bsyn.Light.create('SPOT', intensity=100)
     constr = light.object.constraints.new(type='COPY_TRANSFORMS')
     constr.target = cameras[closest_camera_idx].object
 
