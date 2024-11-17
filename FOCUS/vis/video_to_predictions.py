@@ -9,6 +9,8 @@ import numpy as np
 import imageio
 from pathlib import Path
 from collections import defaultdict
+import subprocess
+import tempfile
 
 parser = argparse.ArgumentParser(description="Predict TOC from video.")
 
@@ -21,6 +23,31 @@ parser.add_argument("--model_path", type=Path, help="Path to predictor model.", 
 parser.add_argument('--fps', type=int, default=60, help='Frames per second of output video.')
 
 FTYPES = ('rgb', 'toc', 'normal', 'norm_unc', 'toc_unc', 'mask', 'mesh')
+STACK_FTYPES = ('rgb', 'toc', 'normal', 'mesh')
+
+def overlay_text_on_video(input_video, text, output_video):
+    command = [
+        "ffmpeg",
+        "-i", input_video,
+        "-vf", f"drawtext=text='{text}':fontcolor=white:fontsize=50:x=(w-text_w)/2:y=10",
+        "-codec:a", "copy",
+        output_video
+    ]
+    subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+def hstack_videos(output_loc, videos):
+    args = ['ffmpeg', '-y']
+    for i, video in enumerate(videos):
+        args += ['-i', video]
+
+    args += ['-filter_complex', f"{''.join([f'[{i}:v]' for i in range(len(videos))])}hstack=inputs={len(videos)}[v]", '-map', '[v]', output_loc]
+
+    subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # ALso convert to gif.
+    gif_loc = output_loc.with_suffix('.gif')
+    args = ['ffmpeg', '-y', '-i', output_loc, '-vf', 'fps=25,scale=640:-1', gif_loc]
+    subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 def run(args):
 
@@ -52,6 +79,15 @@ def run(args):
 
     for ftype in FTYPES:
         imageio.mimwrite(args.output_folder / f'{ftype}.mp4', out_frames[ftype], fps=args.fps)
+
+    # Stack files.
+    temp_vids = []
+    for ftype in STACK_FTYPES:
+        temp_vid = tempfile.mktemp(suffix='.mp4')
+        overlay_text_on_video(args.output_folder / f'{ftype}.mp4', ftype.upper(), temp_vid)
+        temp_vids.append(temp_vid)
+
+    hstack_videos(args.output_folder / 'stacked.mp4', temp_vids, num_loops=5)
 
 if __name__ == "__main__":
     args = parser.parse_args()
