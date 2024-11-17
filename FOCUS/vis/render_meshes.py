@@ -2,20 +2,11 @@
 
 import os, sys
 import blendersynth as bsyn
-from argparse import ArgumentParser
 from tempfile import mkdtemp
-import shutil
 
-parser = ArgumentParser(description="Render fitting result from each viewpoint using Blender(synth)")
+parser = bsyn.ArgumentParser(description="Render fitting result from each viewpoint using Blender(synth)")
 parser.add_argument("--input_directory", type=str, help="Path to the input directory")
-
-# TODO: Transfer this functionality into BlenderSynth
-if not bsyn.is_blender_running():
-    args = parser.parse_args()
-
-else:
-    argv = sys.argv[sys.argv.index('--')+1:]
-    args, _ = parser.parse_known_args(argv)
+args = parser.parse_args()
 
 bsyn.run_this_script(open_blender=False, **vars(args))
 
