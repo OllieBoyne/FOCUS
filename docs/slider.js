@@ -140,10 +140,10 @@ document.addEventListener("DOMContentLoaded", function() {
   createImageSliderSet({
     id:"synth",
     baseDirectory: "images/synth",
-    baseImages: ["0.png", "1.png", "2.png", "3.png", "4.png"],
-    directories: ["norm", "mask", "keypoints"],
+    baseImages: ["030.png", "057.png", "075.png", "197.png", "032.png"],
+    directories: ["TOC", "normals", "mask"],
     nOverlays: 3,
-    overlayNames: ["Normals", "Mask", "Keypoints"],
+    overlayNames: ["Correspondences", "Normals", "Mask"],
     imageWrapperId: "image-wrapper-synth",
     radioButtonsId: "radio-buttons-synth",
     sliderId: "slider-synth"
