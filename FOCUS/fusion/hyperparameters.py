@@ -22,7 +22,7 @@ class FusionHyperparameters:
 
     """
 
-    num_correspondences: int = 20_000
+    num_correspondences: int = 60_000
     toc_correspondence_threshold: float = 0.002
     toc_uncertainty_threshold: float = 100.0
     toc_height_limit: float = 1.0
