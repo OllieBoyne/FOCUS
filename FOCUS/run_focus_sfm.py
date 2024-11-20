@@ -12,6 +12,8 @@ import subprocess
 import shutil
 import os
 import sys
+from tqdm import tqdm
+from contextlib import contextmanager
 
 from pathlib import Path
 
@@ -63,6 +65,34 @@ def _frames_from_video(args):
     for frame in output_frames[desired_frames:]:
         os.remove(image_dir / frame)
 
+class Runner:
+    def __init__(self, logdir: Path):
+        self.logdir = logdir
+        self._original_stdout = sys.stdout
+        self._pbar: tqdm = None
+        self.logfile = None
+
+    def __call__(self, title, desc):
+        self._title = title
+        self._desc = desc
+        return self
+
+    def __enter__(self):
+
+        logfile = logdir / f'{self._title}.txt'
+        self.logfile = open(logfile, 'w')
+
+        sys.stdout = self.logfile
+        # with  as pbar:
+        self._pbar = tqdm([1], desc=self._desc)
+        return self
+
+    def __exit__(self, *args):
+        self._pbar.update()
+        self._pbar.close()
+        sys.stdout = self._original_stdout
+        self.logfile.close()
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -77,9 +107,14 @@ if __name__ == "__main__":
 
     args.output_folder.mkdir(parents=True, exist_ok=True)
 
+    logdir = args.output_folder / 'logs'
+    logdir.mkdir(exist_ok=True)
+    runner = Runner(logdir)
+
     if args.video_path is not None:
         assert args.make_predictions, "Cannot extract frames from video without making predictions. Use flag --make_predictions."
-        _frames_from_video(args)
+        with runner('Video', 'Extracting frames from video'):
+            _frames_from_video(args)
         source_folder = args.output_folder / 'frames'
 
     if args.make_predictions:
@@ -96,17 +131,21 @@ if __name__ == "__main__":
         # Copy over predictions.
         shutil.copytree(source_folder, args.output_folder, dirs_exist_ok=True)
 
-    views = load_views(args.output_folder)
+    with runner('Loader', 'Loading views'):
+        views = load_views(args.output_folder)
 
     # Assume calibration is world space if using existing predictions, not otherwise.
     hyperparams = fuse.FusionHyperparameters(is_world_space=not args.make_predictions)
 
-    fuse.fuse(views, args.output_folder, hyperparameters=hyperparams)
+    with runner('FOCUS-SfM', 'Running FOCUS-SfM'):
+        fuse.fuse(views, args.output_folder, hyperparameters=hyperparams)
 
     if args.render:
-        subprocess.run([sys.executable, render_meshes_script, '--input_directory', str(args.output_folder)],
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        with runner('Render', 'Rendering meshes'):
+            subprocess.run([sys.executable, render_meshes_script, '--input_directory', str(args.output_folder)],
+                           stdout=runner.logfile)
 
     if args.produce_videos:
-        subprocess.run([sys.executable, produce_videos_script, '--predictions_folder', str(args.output_folder),
-                        '--output_folder', str(args.output_folder / 'videos')])
+        with runner('Videos', 'Producing videos'):
+            subprocess.run([sys.executable, produce_videos_script, '--predictions_folder', str(args.output_folder),
+                            '--output_folder', str(args.output_folder / 'videos')])

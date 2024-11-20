@@ -10,11 +10,9 @@ import os
 
 
 def _setup_meshlab():
-    """Needed for meshlab. May interfere with certain Open3D functionality, haven't tested"""
+    """Needed for meshlab. May interfere with certain Open3D functionality."""
     if os.environ.get("KMP_DUPLICATE_LIB_OK", "True"):
-        warnings.warn(
-            "Turning off KMP_DUPLICATE_LIB_OK for Meshlab. May interfere with Open3D."
-        )
+        print("Turning off KMP_DUPLICATE_LIB_OK for Meshlab. May interfere with Open3D.")
         os.environ["KMP_DUPLICATE_LIB_OK"] = "False"
 
     # TODO: Check whether this is always needed. But setting this to False seems to fix the issue on Macbook M1.
