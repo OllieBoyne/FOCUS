@@ -100,6 +100,7 @@ def fuse(views: [View], output_folder: Path, hyperparameters: FusionHyperparamet
         normals=np.array(point_cloud.normals)
         if hyperparameters.screened_poisson_use_calculated_normals
         else None,
+        colors = np.array(point_cloud.colors),
         **hyperparameters.screened_poisson_parameters,
     )
 

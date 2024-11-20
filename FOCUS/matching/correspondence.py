@@ -15,12 +15,14 @@ class Correspondence:
         normal: tuple[float, float, float] | None = None,
         toc_unc: tuple[float, float, float] | None = None,
         norm_unc: float | None = None,
+        rgb: tuple[float, float, float] | None = None,
     ):
         self._points_2d = []
         self._idxs = []
         self._normals = []
         self._toc_unc = []
         self._norm_unc = []
+        self._rgbs = []
 
         self.toc_value = toc_value
         self._tocs = []
@@ -31,6 +33,7 @@ class Correspondence:
             normal=normal,
             toc_unc=toc_unc,
             norm_unc=norm_unc,
+            rgb=rgb,
         )
 
         self.point3d = None
@@ -43,6 +46,7 @@ class Correspondence:
         normal: tuple[float, float, float] | None = None,
         toc_unc: tuple[float, float, float] | None = None,
         norm_unc: float | None = None,
+        rgb: tuple[float, float, float] | None = None,
     ) -> None:
         self._points_2d.append(point_2d)
         self._idxs.append(idx)
@@ -50,6 +54,7 @@ class Correspondence:
         self._normals.append(normal)
         self._toc_unc.append(toc_unc)
         self._norm_unc.append(norm_unc)
+        self._rgbs.append(rgb)
 
     def triangulate(self, projection_matrices) -> np.ndarray:
         p3d = triangulation.triangulate(
@@ -120,6 +125,10 @@ class Correspondence:
 
     def average_uncertainty(self):
         return np.mean([np.linalg.norm(unc) for unc in self._toc_unc])
+
+    def get_average_color(self):
+        return np.mean(self._rgbs, axis=0)
+
 
 
 def points_to_array(

@@ -171,6 +171,7 @@ class FusionView:
                 normal=self.normal_world[y_int, x_int],
                 toc_unc=self.toc_unc_image[y_int, x_int],
                 norm_unc=self.normal_uncertainty[y_int, x_int],
+                rgb=self.rgb[y_int, x_int] if self.rgb is not None else None,
             )
 
     def _subsample_toc_batch(
@@ -227,6 +228,10 @@ class FusionView:
         mask_batch = torch.from_numpy(self.mask).unsqueeze(0)
         samples = sampler.samples_in_mask(mask_batch, n_samples)
 
+        rgb_image_samples = sampler.sample_image(
+            torch.from_numpy(self.rgb).unsqueeze(0), samples
+        )[0].numpy()
+
         toc_image_samples = sampler.sample_image(
             torch.from_numpy(self.toc_image).unsqueeze(0), samples
         )[0].numpy()
@@ -253,6 +258,7 @@ class FusionView:
                 normal=normal_world_samples[n],
                 toc_unc=toc_unc_samples[n],
                 norm_unc=norm_unc_samples[n],
+                rgb=rgb_image_samples[n],
             )
             correspondences.append(correspondence)
 

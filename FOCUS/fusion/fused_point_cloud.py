@@ -37,6 +37,10 @@ class FusedPointCloud:
     def toc(self):
         return [c.toc_value for c, m in zip(self._correspondences, self._mask) if m]
 
+    @property
+    def colors(self):
+        return [c.get_average_color() for c, m in zip(self._correspondences, self._mask) if m]
+
     def filter_correspondences_by(self, function: Callable, key: str = ""):
         previous_length = sum(self._mask)
 

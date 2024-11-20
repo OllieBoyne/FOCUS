@@ -28,18 +28,20 @@ def cutoff_above(points, z=0.1) -> (np.ndarray, np.ndarray):
 
 def pymeshlab_poisson_reconstruct(points, normals=None, depth=8, iters:int = 8, samplespernode:float = 1.5,
                                   cgdepth:int = 5, pointweight:int = 4,
-                                  quality: np.ndarray | None=None) -> trimesh.Trimesh:
+                                  quality: np.ndarray | None=None,
+                                  colors: np.ndarray | None = None) -> trimesh.Trimesh:
     _setup_meshlab()
 
-    mesh = pymeshlab.Mesh(vertex_matrix=points)
+    if colors is not None and colors.shape[-1] != 4:
+        # Add alpha channel if not present
+        colors = np.concatenate([colors, np.ones((len(colors), 1))], axis=-1)
 
-    if normals is not None:
-        kwargs = {}
+    kwargs = {'vertex_matrix': points, 'v_normals_matrix': normals, 'v_color_matrix': colors}
 
-        if quality is not None:
-            kwargs["v_scalar_array"] = np.clip(quality, a_min=1e-4, a_max=1.0)
+    if quality is not None:
+        kwargs["v_scalar_array"] = np.clip(quality, a_min=1e-4, a_max=1.0)
 
-        mesh = pymeshlab.Mesh(vertex_matrix=points, v_normals_matrix=normals, **kwargs)
+    mesh = pymeshlab.Mesh(**kwargs)
 
     ms = pymeshlab.MeshSet()
     ms.add_mesh(mesh)
@@ -52,9 +54,15 @@ def pymeshlab_poisson_reconstruct(points, normals=None, depth=8, iters:int = 8, 
         cgdepth=cgdepth, pointweight=pointweight, confidence=quality is not None
     )
 
-    mesh = trimesh.Trimesh(vertices=ms.current_mesh().vertex_matrix(), faces=ms.current_mesh().face_matrix())
+    vertex_colors = None
+    if colors is not None:
+        vertex_colors = ms.current_mesh().vertex_color_matrix()
+        vertex_colors = (vertex_colors * 255).astype(np.uint8)
 
-    return mesh
+    tmesh = trimesh.Trimesh(vertices=ms.current_mesh().vertex_matrix(), faces=ms.current_mesh().face_matrix(),
+                            vertex_colors=vertex_colors)
+
+    return tmesh
 
 
 def crop_to_original_pointcloud(mesh: trimesh.Trimesh, original_points: np.ndarray, padding=0.01) -> trimesh.Trimesh:
