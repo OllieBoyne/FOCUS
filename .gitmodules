@@ -1,0 +1,3 @@
+[submodule "FOCUS/toc_prediction/DSINE"]
+	path = FOCUS/toc_prediction/DSINE
+	url = https://github.com/baegwangbin/DSINE

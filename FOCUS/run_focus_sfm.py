@@ -8,12 +8,13 @@ from FOCUS.data import io
 
 from FOCUS.toc_prediction import predict as predict_toc_module
 from FOCUS.calibration import run_colmap
+from FOCUS.utils.image import resize_preserve_aspect
 import subprocess
 import shutil
 import os
 import sys
 from tqdm import tqdm
-from contextlib import contextmanager
+import cv2
 
 from pathlib import Path
 
@@ -30,7 +31,7 @@ parser.add_argument('--video_path', type=Path, default=None, help='Path to video
 parser.add_argument('--num_frames', type=int, help='Number of frames to extract from video (-1 = all).', default=20)
 
 parser.add_argument('--colmap_exe', default='colmap', help='Path to COLMAP executable.')
-parser.add_argument('--toc_model_path', type=Path, help='Path to predictor model.', default='data/toc_model/resnet50_v12_t=44/model_best.pth')
+parser.add_argument('--toc_model_path', type=Path, help='Path to predictor model.', default='data/toc_model/densedepth_v12/t=120.pth')
 
 parser.add_argument('--render', action='store_true', help='Render the output meshes.')
 parser.add_argument('--produce_videos', action='store_true', help='Produce videos of TOC, normals etc.')
@@ -45,6 +46,10 @@ def _frames_from_video(args):
     # Check FFMPEG exists.
     if shutil.which('ffmpeg') is None:
         raise FileNotFoundError("FFMPEG not found. Please install FFMPEG to extract frames from video.")
+
+    # Check video exists.
+    if not args.video_path.exists():
+        raise FileNotFoundError(f"Video file {args.video_path} does not exist.")
 
     image_dir = args.output_folder / 'frames'
     image_dir.mkdir(exist_ok=True, parents=True)
@@ -64,6 +69,12 @@ def _frames_from_video(args):
     output_frames = sorted([f for f in os.listdir(image_dir) if f.endswith('.png')])
     for frame in output_frames[desired_frames:]:
         os.remove(image_dir / frame)
+
+    # Resize frames to target size.
+    for frame in output_frames[:desired_frames]:
+        img = cv2.imread(str(image_dir / frame))
+        img = resize_preserve_aspect(img, (480, 640))
+        cv2.imwrite(str(image_dir / frame), img)
 
 class Runner:
     def __init__(self, logdir: Path):
