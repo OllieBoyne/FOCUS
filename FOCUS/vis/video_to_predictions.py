@@ -22,8 +22,8 @@ parser.add_argument("--model_path", type=Path, help="Path to predictor model.", 
 
 parser.add_argument('--fps', type=int, default=60, help='Frames per second of output video.')
 
-FTYPES = ('rgb', 'toc', 'normal', 'norm_unc', 'toc_unc', 'mask', 'mesh')
-STACK_FTYPES = ('rgb', 'toc', 'normal', 'mesh')
+FTYPES = ('rgb', 'toc', 'normal', 'norm_unc', 'toc_unc', 'mask', 'mesh_no_color', 'mesh_color')
+STACK_FTYPES = ('rgb', 'toc', 'normal', 'mesh_no_color', 'mesh_color')
 
 def overlay_text_on_video(input_video, text, output_video):
     command = [

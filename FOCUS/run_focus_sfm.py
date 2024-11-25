@@ -153,8 +153,15 @@ if __name__ == "__main__":
 
     if args.render:
         with runner('Render', 'Rendering meshes'):
-            subprocess.run([sys.executable, render_meshes_script, '--input_directory', str(args.output_folder)],
-                           stdout=runner.logfile)
+
+            command = [sys.executable, render_meshes_script, '--input_directory', str(args.output_folder)]
+
+            process1 = subprocess.Popen(command + ['--use_color', '1'], stdout=runner.logfile)
+            process2 = subprocess.Popen(command + ['--use_color', '0'], stdout=runner.logfile)
+
+            # Wait for both processes to complete
+            process1.wait()
+            process2.wait()
 
     if args.produce_videos:
         with runner('Videos', 'Producing videos'):
