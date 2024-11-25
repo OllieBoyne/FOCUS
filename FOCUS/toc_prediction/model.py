@@ -1,127 +1,100 @@
-import torch
-import torch.nn as nn
 import os
 
-import segmentation_models_pytorch as smp
-from segmentation_models_pytorch.encoders import get_encoder
-from segmentation_models_pytorch.decoders.unet.decoder import UnetDecoder
-from segmentation_models_pytorch.base.modules import Activation
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+# Add DSINE to the path
+import sys
+dsine_loc = os.path.join(os.path.dirname(__file__), 'DSINE')
+sys.path.append(dsine_loc)
+
+from FOCUS.toc_prediction.DSINE.models.conv_encoder_decoder.dense_depth import DenseDepth
 
 
-class EluPlus1(nn.Module):
-    def forward(self, x):
-        return nn.functional.elu(x) + 1.0
+MIN_KAPPA = 0.00
 
+def uncertainty_activation(out, k = 10):
+    """Activation for log of variance of uncertainty
+    Normalize between -k and k"""
+    return F.tanh(out) * k
 
-class Normalize(nn.Module):
-    def forward(self, x):
-        return nn.functional.normalize(x, p=2, dim=1)
+def normal_activation(out):
+    normal, kappa = out[:, :3, :, :], out[:, [3], :, :]
+    normal = F.normalize(normal, p=2, dim=1)
+    kappa = F.elu(kappa) + 1.0 + MIN_KAPPA
+    return torch.cat([normal, kappa], dim=1)
 
+def toc_activation(out):
+    toc, unc = out[:, 4:7, :, :], out[:, 7:10, :, :]
+    unc = uncertainty_activation(unc)
+    toc = F.sigmoid(toc)
+    return torch.cat([toc, unc], dim=1)
 
-class Tanh10(nn.Module):
-    def forward(self, x):
-        return nn.functional.tanh(x) * 10.0
+def hm_activation(out):
+    hm = out[:, [10], :, :]
+    hm = F.sigmoid(hm)
+    return hm
 
-_activations = {
-    'elu': nn.ELU,
-    'relu': nn.ReLU,
-    'sigmoid': nn.Sigmoid,
-    'tanh': nn.Tanh,
-    'normalize': Normalize,
-    'elu_plus_1': EluPlus1,
-    'tanh10': Tanh10,
-    None: nn.Identity,
-}
-
-
-class DenseHead(nn.Sequential):
-    def __init__(self, in_channels, out_channels, kernel_size=3, activation=None, upsampling=1):
-        conv2d = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2)
-        upsampling = nn.UpsamplingBilinear2d(scale_factor=upsampling) if upsampling > 1 else nn.Identity()
-        activation = _activations[activation]()
-        super().__init__(conv2d, upsampling, activation)
-
-
-class ClassificationHeadPlus(nn.Sequential):
-    def __init__(self, in_channels, classes, pooling="avg", dropout=0.2, activation=None,
-                 pool_size=(16, 16)):
-        if pooling not in ("max", "avg"):
-            raise ValueError("Pooling should be one of ('max', 'avg'), got {}.".format(pooling))
-        pool = nn.AdaptiveAvgPool2d(pool_size) if pooling == "avg" else nn.AdaptiveMaxPool2d(pool_size)
-        flatten = nn.Flatten()
-        dropout = nn.Dropout(p=dropout, inplace=True) if dropout else nn.Identity()
-        linear = nn.Linear(in_channels * pool_size[0] * pool_size[1], classes, bias=True)
-        activation = Activation(activation)
-        super().__init__(pool, flatten, dropout, linear, activation)
+def activation_fn(out):
+    norm = normal_activation(out)
+    toc = toc_activation(out)
+    hm = hm_activation(out)
+    return torch.cat([norm, toc, hm], dim=1)
 
 
 class FootPredictorModel(nn.Module):
-    def __init__(self, encoder_name='mobilenet_v2', image_size=(256, 256), **params):
+    def __init__(self, image_size=(256, 256), arch='densedepth__B5__NF2048__down2__bilinear__BN', **kwargs):
         super().__init__()
 
-        self.params = dict(encoder_name=encoder_name, image_size=image_size)
+        output_dim = 4 + 6 + 1  # normal + toc + mask
+        output_type = 'G'
 
-        # ENCODER
-        self.encoder = get_encoder(
-            encoder_name,
-            in_channels=3,
-            depth=5,
-            weights="imagenet",
+        self.params = dict(image_size=image_size, arch=arch, output_dim=output_dim, output_type=output_type)
+
+        _, B, NF, down, learned, BN = arch.split('__')
+        self.n_net = DenseDepth(num_classes=output_dim,
+                                B=int(B[1:]), NF=int(NF[2:]), BN=BN == 'BN',
+                                down=int(down.split('down')[1]), learned_upsampling=learned == 'learned',
+                                activation_fn=activation_fn)
+
+        # prediction head to take [B x output_dim x H x W] predicted maps and output a binary classification
+        # for left/right
+        pool_size = 16
+        self.footedness_head = nn.Sequential(
+            nn.AdaptiveAvgPool2d((pool_size, pool_size)),
+            nn.Flatten(),
+            nn.Dropout(0.2),
+            nn.Linear(output_dim * pool_size * pool_size, 2),
+            nn.Sigmoid()
         )
 
-        decoder_channels = (256, 128, 64, 32, 32)
+        # imagenet
+        mean = [0.485, 0.456, 0.406]
+        std = [0.229, 0.224, 0.225]
 
-        self.decoder = UnetDecoder(
-            encoder_channels=self.encoder.out_channels,
-            decoder_channels=decoder_channels,
-            n_blocks=5,  # encoder depth
-            use_batchnorm=True,
-            center=False,
-            attention_type=None,
-        )
+        self.register_buffer('mean', torch.tensor(mean).view(1, 3, 1, 1))
+        self.register_buffer('std', torch.tensor(std).view(1, 3, 1, 1))
 
-        # HEADS:
-        # 1. Footedness (binary)
-        # 2. Normals (H x W x 3)
-        # 3. Normals uncertainty (H x W x 1)
-        # 4. TOC (H x W x 3)
-        # 5. TOC uncertainty (H x W x 3)
-        # 6. Heatmap (H x W x 1)
+    def forward(self, img, **kwargs) -> dict:
+        """Run forward pass of network
 
-        decoder_output_channels = decoder_channels[-1]
-        self.heads = dict(
-            footedness=ClassificationHeadPlus(decoder_output_channels, 2, activation='sigmoid'),
-            norm_xyz=DenseHead(decoder_output_channels, 3, activation='normalize'),
-            norm_unc=DenseHead(decoder_output_channels, 1, activation='elu_plus_1'),
-            TOC=DenseHead(decoder_output_channels, 3, activation='sigmoid'),
-            TOC_unc_log_var=DenseHead(decoder_output_channels, 3, activation='tanh10'),
-            hm=DenseHead(decoder_output_channels, 1, activation='sigmoid'),
-        )
+        :param img: [B, 3, H, W] *un-normalized* image
+        : return: dict of predictions
+        """
 
-        for k, v in self.heads.items():
-            self.__setattr__(k, v)
+        img = (img - self.mean) / self.std
+        res = self.n_net(img, **kwargs)  # [B, output_dim, H, W]
 
-        params = smp.encoders.get_preprocessing_params(encoder_name)
-        self.register_buffer('std', torch.tensor(params["std"]).view(1, 3, 1, 1))
-        self.register_buffer('mean', torch.tensor(params["mean"]).view(1, 3, 1, 1))
+        predictions = {
+            'norm_xyz': res[:, :3, :, :],
+            'norm_unc': res[:, [3], :, :],
+            'TOC': res[:, 4:7, :, :],
+            'TOC_unc_log_var': res[:, 7:10, :, :],
+            'hm': res[:, [10], :, :],
+            'footedness': self.footedness_head(res),
+        }
 
-        self.register_buffer('img_size', torch.tensor(image_size))
-
-    def forward(self, rgb):
-        """Receives image as shape [B, 3, H, W],
-        returns dictionary of head predictions"""
-
-        rgb = (rgb - self.mean) / self.std
-
-        feat = self.encoder(rgb)
-        decoder_output = self.decoder(*feat)
-
-        predictions = dict()
-        for k, head in self.heads.items():
-            predictions[k] = head(decoder_output)
-
-        # Postprocess predictions
-        W, H = self.params['image_size']
         predictions['norm_rgb'] = (predictions['norm_xyz'] + 1.0) / 2.0
 
         return predictions
@@ -147,8 +120,7 @@ class FootPredictorModel(nn.Module):
             param.requires_grad = True
 
     def save_model(self, out_dir='predictor', fname='model_tmp'):
-        data = {'state_dict': self.state_dict()}
-        data['params'] = self.params
+        data = {'state_dict': self.state_dict(), 'params': self.params}
 
         os.makedirs(out_dir, exist_ok=True)
         torch.save(data, os.path.join(out_dir, fname + '.pth'))
