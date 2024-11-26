@@ -81,14 +81,25 @@ def crop_to_original_pointcloud(mesh: trimesh.Trimesh, original_points: np.ndarr
     return mesh
 
 def crop_to_plane(mesh: trimesh.Trimesh, origin: np.ndarray, normal: np.ndarray) -> trimesh.Trimesh:
-    """Remove all faces that are not on the positive side of the plane."""
+    """Remove all vertices (and corresponding faces) that are not on the positive side of the plane."""
     # Remove faces on the wrong side of the plane.
     points = np.array(mesh.vertices)
     points_in_plane = np.dot(points - origin, normal) > 0
+
+    vertex_mapping = -np.ones(len(mesh.vertices))
+    new_to_old = np.where(points_in_plane)[0]
+    vertex_mapping[new_to_old] = np.arange(len(new_to_old))
+
+    # Mapping of new indices to old indices
     faces_mask = points_in_plane[mesh.faces].all(axis=1)
-    mesh = mesh.copy()
-    mesh.update_faces(faces_mask)
-    return mesh
+
+    new_faces = mesh.faces[faces_mask]
+    new_faces = vertex_mapping[new_faces]
+
+    vertex_colors = mesh.visual.vertex_colors[points_in_plane]
+
+    new_mesh = trimesh.Trimesh(vertices=points[points_in_plane], faces=new_faces, vertex_colors=vertex_colors)
+    return new_mesh
 
 def keep_pointcloud_island(mesh: trimesh.Trimesh, points: np.ndarray) -> trimesh.Trimesh:
     """Given a mesh and a point cloud, keep only the island which the most points are nearest to."""
