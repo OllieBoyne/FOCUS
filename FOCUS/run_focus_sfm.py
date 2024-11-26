@@ -2,21 +2,24 @@
 
 import argparse
 
-from FOCUS.fusion import fuse
-from FOCUS.data.dataset import load_views
-from FOCUS.data import io
-
-from FOCUS.toc_prediction import predict as predict_toc_module
-from FOCUS.calibration import run_colmap
-from FOCUS.utils.image import resize_preserve_aspect
 import subprocess
 import shutil
 import os
 import sys
 from tqdm import tqdm
 import cv2
-
 from pathlib import Path
+
+from FOCUS.data import io
+
+from FOCUS.toc_prediction import predict as predict_toc_module
+from FOCUS.calibration import run_colmap
+from FOCUS.utils.image import resize_preserve_aspect
+
+from FOCUS.fusion import fuse
+from FOCUS.data.dataset import load_views
+from FOCUS.fusion.hyperparameters import FusionHyperparameters
+
 
 parser = argparse.ArgumentParser(description="Fuse a set of views into a point cloud.")
 parser.add_argument('--make_predictions', action='store_true', help='Predictions do not exist: make predictions for TOC and normals.')
@@ -35,6 +38,8 @@ parser.add_argument('--toc_model_path', type=Path, help='Path to predictor model
 
 parser.add_argument('--render', action='store_true', help='Render the output meshes.')
 parser.add_argument('--produce_videos', action='store_true', help='Produce videos of TOC, normals etc.')
+
+FusionHyperparameters.add_to_argparse(parser)
 
 render_meshes_script = 'FOCUS/vis/render_meshes.py'
 produce_videos_script = 'FOCUS/vis/video_to_predictions.py'
@@ -142,13 +147,9 @@ if __name__ == "__main__":
         # Copy over predictions.
         shutil.copytree(source_folder, args.output_folder, dirs_exist_ok=True)
 
-    with runner('Loader', 'Loading views'):
-        views = load_views(args.output_folder)
-
-    # Assume calibration is world space if using existing predictions, not otherwise.
-    hyperparams = fuse.FusionHyperparameters(is_world_space=not args.make_predictions)
-
     with runner('FOCUS-SfM', 'Running FOCUS-SfM'):
+        hyperparams = FusionHyperparameters.from_args(args, is_world_space=not args.make_predictions)
+        views = load_views(args.output_folder)
         fuse.fuse(views, args.output_folder, hyperparameters=hyperparams)
 
     if args.render:

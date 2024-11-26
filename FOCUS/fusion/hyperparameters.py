@@ -1,4 +1,5 @@
 import dataclasses
+import argparse
 
 @dataclasses.dataclass(frozen=True)
 class FusionHyperparameters:
@@ -22,7 +23,7 @@ class FusionHyperparameters:
 
     """
 
-    num_correspondences: int = 60_000
+    num_correspondences: int = 20_000
     toc_correspondence_threshold: float = 0.002
     toc_uncertainty_threshold: float = 100.0
     toc_height_limit: float = 1.0
@@ -50,3 +51,21 @@ class FusionHyperparameters:
             "cgdepth": self.screened_poisson_cgdepth,
             "pointweight": self.screened_poisson_pointweight,
         }
+
+    @classmethod
+    def add_to_argparse(cls, parser: argparse.ArgumentParser):
+        """Add hyperparameters to an argparse parser."""
+        for field in dataclasses.fields(cls):
+            if field.type == bool:
+                parser.add_argument(f"--no_{field.name}", dest=field.name, action='store_false', help=f"{field.name}: {field.default}")
+                parser.add_argument(f"--{field.name}", dest=field.name, action='store_true', help=f"{field.name}: {field.default}")
+                parser.set_defaults(**{field.name: field.default})
+            else:
+                parser.add_argument(f"--{field.name}", type=type(field.default), default=field.default)
+
+    @classmethod
+    def from_args(cls, args: argparse.Namespace, **kwargs):
+        """Create a FusionHyperparameters object from argparse arguments. Override with any kwargs"""
+        inputs = {field.name: getattr(args, field.name) for field in dataclasses.fields(cls)}
+        inputs.update(kwargs)
+        return FusionHyperparameters(**inputs)
