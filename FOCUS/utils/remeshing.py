@@ -34,7 +34,10 @@ def pymeshlab_poisson_reconstruct(points, normals=None, depth=8, iters:int = 8, 
         # Add alpha channel if not present
         colors = np.concatenate([colors, np.ones((len(colors), 1))], axis=-1)
 
-    kwargs = {'vertex_matrix': points, 'v_normals_matrix': normals, 'v_color_matrix': colors}
+    kwargs = {'vertex_matrix': points, 'v_color_matrix': colors}
+
+    if normals is not None:
+        kwargs["v_normals_matrix"] = normals
 
     if quality is not None:
         kwargs["v_scalar_array"] = np.clip(quality, a_min=1e-4, a_max=1.0)
@@ -73,6 +76,16 @@ def crop_to_original_pointcloud(mesh: trimesh.Trimesh, original_points: np.ndarr
         (reconstr_points >= min_bbox) & (reconstr_points <= max_bbox), axis=-1
     )
     faces_mask = points_in_bbox[mesh.faces].all(axis=1)
+    mesh = mesh.copy()
+    mesh.update_faces(faces_mask)
+    return mesh
+
+def crop_to_plane(mesh: trimesh.Trimesh, origin: np.ndarray, normal: np.ndarray) -> trimesh.Trimesh:
+    """Remove all faces that are not on the positive side of the plane."""
+    # Remove faces on the wrong side of the plane.
+    points = np.array(mesh.vertices)
+    points_in_plane = np.dot(points - origin, normal) > 0
+    faces_mask = points_in_plane[mesh.faces].all(axis=1)
     mesh = mesh.copy()
     mesh.update_faces(faces_mask)
     return mesh

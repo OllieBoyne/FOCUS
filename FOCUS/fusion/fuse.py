@@ -60,6 +60,7 @@ def fuse(views: [View], output_folder: Path, hyperparameters: FusionHyperparamet
 
     point_cloud.triangulate(projection_matrices)
 
+    cutoffs = [] # list of (origin, normal) for cutoff planes
     if hyperparameters.is_world_space:
         point_cloud.cutoff_points(hyperparameters.mesh_cutoff_heights[1], "above")
         point_cloud.cutoff_points(hyperparameters.mesh_cutoff_heights[0], "below")
@@ -70,20 +71,27 @@ def fuse(views: [View], output_folder: Path, hyperparameters: FusionHyperparamet
         point_cloud.remove_outliers(std_ratio=5.0)
         point_cloud.remove_outliers_by_centroid_distance(frac=0.01)
 
-        # Need to align the mesh to world space (using TOC).
-        # TODO: Implement as separate output.
-        # T, a, cost = trimesh.registration.procrustes(point_cloud.points_3d, point_cloud.toc, reflection=True)
-        #
-        # # Remove reflection if it exists.
-        # if np.linalg.det(T[:3, :3]) < 0:
-        #     # re-reflect along y
-        #     refl_y = np.eye(4)
-        #     refl_y[1, 1] = -1
-        #     T = refl_y @ T
-        #
-        # point_cloud.apply_transform(T)
+        # Need to align the mesh to world space (using TOC) for cropping.
+        T, a, cost = trimesh.registration.procrustes(point_cloud.points_3d, point_cloud.toc, reflection=True)
 
-        # visualize.show_pointcloud_with_normals(point_cloud.points_3d, np.array(point_cloud.normals), colors=point_cloud.toc)
+        # Remove reflection if it exists.
+        if np.linalg.det(T[:3, :3]) < 0:
+            # re-reflect along y
+            refl_y = np.eye(4)
+            refl_y[1, 1] = -1
+            T = refl_y @ T
+
+        # Cut-off below TOC value.
+        lower_cutoff_origin = trimesh.transform_points(np.array([[0, 0, 0.1]]), np.linalg.inv(T))[0]
+        upper_cutoff_origin = trimesh.transform_points(np.array([[0, 0, 0.8]]), np.linalg.inv(T))[0]
+
+        floor_upwards_normal = T[:3, :3].T @ np.array([0, 0, 1])
+
+        point_cloud.cutoff_points_by_plane(lower_cutoff_origin, floor_upwards_normal)
+        point_cloud.cutoff_points_by_plane(upper_cutoff_origin, -floor_upwards_normal)
+
+        cutoffs.append((lower_cutoff_origin, floor_upwards_normal))
+        cutoffs.append((upper_cutoff_origin, -floor_upwards_normal))
 
     point_cloud.remove_outliers(std_ratio=5.0)
 
@@ -108,6 +116,10 @@ def fuse(views: [View], output_folder: Path, hyperparameters: FusionHyperparamet
         mesh, point_cloud.points_3d, padding=hyperparameters.bbox_cropping_padding
     )
     mesh = remeshing.keep_pointcloud_island(mesh, point_cloud.points_3d)
+
+    for (origin, normal) in cutoffs:
+        mesh = remeshing.crop_to_plane(mesh, origin, normal)
+
     mesh.export(output_folder / "mesh.obj")
 
     # End process
