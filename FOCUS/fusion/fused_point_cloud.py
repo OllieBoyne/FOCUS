@@ -63,6 +63,15 @@ class FusedPointCloud:
 
         print(f"[Cutoff {direction} {cutoff_height}] Filter {previous_length} -> {new_length} ({new_length - previous_length})")
 
+    def cutoff_points_by_plane(self, origin: np.ndarray, normal: np.ndarray):
+        """Keep only points in positive plane."""
+        previous_length = sum(self._mask)
+        distances = np.dot(self._points_3d - origin, normal)
+        self._mask *= distances > 0 # Keep points above plane
+        new_length = sum(self._mask)
+
+        print(f"[Cutoff plane] Filter {previous_length} -> {new_length} ({new_length - previous_length})")
+
     def remove_outliers(self, neighbours=20, std_ratio=2.0):
         new_points, mask = remeshing.open3d_remove_outliers(self.points_3d, neighbours=neighbours, std_ratio=std_ratio)
 
