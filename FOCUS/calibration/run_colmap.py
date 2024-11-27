@@ -98,11 +98,3 @@ def run_colmap(image_dir: Path, output_dir: Path, colmap_exe: str = 'colmap',
         raise ValueError(f'Failed to calibrate {len(failed_views)} / {len(img_ids)} images. '
                       'Try increasing --num_colmap_matches.')
 
-
-if __name__ == '__main__':
-    src = '/Users/ollie/Library/CloudStorage/OneDrive-UniversityofCambridge/FIND2D/data/Foot3D/mono3d_v11_t=56/0035'
-    output_dir = Path('/Users/ollie/Documents/repos/phd-projects/FOCUS/data/dummy_data_pred')
-
-    img_dir = os.path.join(src, 'rgb')
-    run_colmap(img_dir, output_dir)
-

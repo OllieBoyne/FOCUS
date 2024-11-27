@@ -119,14 +119,3 @@ def predict_toc(imgs: np.ndarray, model: FootPredictorModel | Path, out_dir: Pat
                         json.dump(aux_data, f)
 
                     progress_bar.update(1)
-
-if __name__ == '__main__':
-    src = '/Users/ollie/Library/CloudStorage/OneDrive-UniversityofCambridge/FIND2D/data/Foot3D/mono3d_v11_t=56/0035'
-
-    filenames = sorted([os.path.splitext(f)[0] for f in os.listdir(os.path.join(src, 'rgb')) if f.endswith('.png')])
-    imgs = [cv2.cvtColor(cv2.imread(os.path.join(src, 'rgb', f + '.png')), cv2.COLOR_BGR2RGB) for f in filenames]
-    imgs = np.array(imgs)
-
-    predict_toc(imgs, Path('data/toc_model/resnet50_v12_t=44/model_best.pth'),
-                Path('data/dummy_data_pred'), filenames
-                )
