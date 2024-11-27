@@ -75,6 +75,9 @@ def run(args):
         for key in keys:
             for ftype in FTYPES:
                 frame = cv2.imread(f'{args.predictions_folder}/{key}/{ftype}.png')
+                if frame is None:
+                    print(f'Error reading {args.predictions_folder}/{key}/{ftype}.png')
+                    continue
                 out_frames[ftype].append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
     for ftype in FTYPES:

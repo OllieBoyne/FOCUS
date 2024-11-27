@@ -33,7 +33,10 @@ parser.add_argument("--overwrite", action='store_true', help="Overwrite output f
 parser.add_argument('--video_path', type=Path, default=None, help='Path to video file.')
 parser.add_argument('--num_frames', type=int, help='Number of frames to extract from video (-1 = all).', default=20)
 
+# COLMAP params.
+parser.add_argument('--num_colmap_matches', type=int, default=2500, help='Number of matches to use for COLMAP.')
 parser.add_argument('--colmap_exe', default='colmap', help='Path to COLMAP executable.')
+
 parser.add_argument('--toc_model_path', type=Path, help='Path to predictor model.', default='data/toc_model/densedepth_v12/t=120.pth')
 
 parser.add_argument('--render', action='store_true', help='Render the output meshes.')
@@ -141,7 +144,8 @@ if __name__ == "__main__":
         )
 
         run_colmap.run_colmap(source_folder, args.output_folder, colmap_exe=args.colmap_exe,
-                              predictions_folder=args.output_folder)
+                              predictions_folder=args.output_folder,
+                              num_correspondences=args.num_colmap_matches)
 
     else:
         # Copy over predictions.

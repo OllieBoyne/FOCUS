@@ -8,13 +8,13 @@ from FOCUS.calibration.colmap_database import COLMAPDatabase
 import numpy as np
 from collections import defaultdict
 
-def toc_matches_to_database(image_dir: Path, predictions_dir: Path, output_dir: Path):
+def toc_matches_to_database(image_dir: Path, predictions_dir: Path, output_dir: Path, num_correspondences=2500):
     """Using TOC matches, form COLMAP database for BA."""
 
     views = load_views(predictions_dir)
     views = [view.FusionView.from_view(v, idx=i) for i, v in enumerate(views)]
 
-    correspondences = match.find_matches(views, num_correspondences=2500,
+    correspondences = match.find_matches(views, num_correspondences=num_correspondences,
                                          max_dist=0.002,
                                          subpixel_scaling=8)
 
