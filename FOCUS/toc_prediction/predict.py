@@ -2,11 +2,12 @@ from FOCUS.toc_prediction.model import FootPredictorModel
 from pathlib import Path
 import cv2
 import os
+from tqdm import tqdm
+import json
 
 from FOCUS.utils import image as image_utils
-from tqdm import tqdm
+from FOCUS.utils import mask as mask_utils
 from FOCUS.utils import normals as normals_utils
-import json
 from FOCUS.utils.torch_utils import get_device
 
 import torch
@@ -75,7 +76,10 @@ def predict_toc(imgs: np.ndarray, model: FootPredictorModel | Path, out_dir: Pat
 
                     input_rgb = rgb[i].cpu().detach().numpy()
                     hm = predictions['hm'][i].cpu().detach().numpy()
+
                     mask = hm > 0.5
+                    mask = mask_utils.largest_island_only(mask[0])[None]
+
                     toc_img = predictions['TOC'][i].cpu().detach().numpy()
 
                     norm_img = predictions['norm_rgb'][i].cpu().detach().numpy()
