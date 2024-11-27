@@ -5,6 +5,7 @@ import os
 import subprocess
 from tqdm import tqdm
 import json
+import warnings
 
 from FOCUS.calibration.colmap_format_conversion import colmap2pytorch3d
 from FOCUS.calibration.custom_matches_colmap import toc_matches_to_database
@@ -18,14 +19,14 @@ def _check_colmap(colmap_exe: str = 'colmap'):
         raise FileNotFoundError(f'`{colmap_exe}` does not run. Make sure COLMAP is installed, and either added to PATH, or the `colmap_exe` argument points to the correct location.')
 
 def run_colmap(image_dir: Path, output_dir: Path, colmap_exe: str = 'colmap',
-               predictions_folder: Path = None):
+               predictions_folder: Path = None,
+               num_correspondences: int = 2500) -> None:
     """
-
-    :param image_dir:
-    :param output_dir:
-    :param colmap_exe:
+    :param image_dir: Directory containing images.
+    :param output_dir: Output directory for COLMAP data.
+    :param colmap_exe: Path to COLMAP executable.
     :param predictions_folder: If given, use these for custom matches. Otherwise, use COLMAP feature extraction & matching.
-    :return:
+    :param num_correspondences: For custom matches, how many correspondences to use.
     """
 
     _check_colmap(colmap_exe)
@@ -40,7 +41,7 @@ def run_colmap(image_dir: Path, output_dir: Path, colmap_exe: str = 'colmap',
 
     commands = {}
     if predictions_folder is not None:
-        toc_matches_to_database(image_dir, predictions_folder, workspace_dir)
+        toc_matches_to_database(image_dir, predictions_folder, workspace_dir, num_correspondences=num_correspondences)
 
     else:
 
@@ -73,6 +74,7 @@ def run_colmap(image_dir: Path, output_dir: Path, colmap_exe: str = 'colmap',
         json.dump(output_data, f)
 
     # Export per view.
+    failed_views = []
     img_ids = [os.path.splitext(f)[0] for f in os.listdir(image_dir) if f.endswith(ACCEPTED_IMAGE_EXTENSIONS)]
     for view in img_ids:
         view_data = {**output_data['camera']}
@@ -84,12 +86,17 @@ def run_colmap(image_dir: Path, output_dir: Path, colmap_exe: str = 'colmap',
                 view_data['C'] = i['C']
                 break
         else:
-            raise ValueError(f'No matching image for view {view} found in COLMAP data.')
+            failed_views.append(view)
+            continue
 
         view_dir = output_dir / view
         view_dir.mkdir(exist_ok=True)
         with open(view_dir / f'colmap.json', 'w') as f:
             json.dump(view_data, f)
+
+    if failed_views:
+        raise ValueError(f'Failed to calibrate {len(failed_views)} / {len(img_ids)} images. '
+                      'Try increasing --num_colmap_matches.')
 
 
 if __name__ == '__main__':
