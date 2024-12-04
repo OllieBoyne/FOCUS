@@ -1,3 +1,6 @@
 [submodule "FOCUS/toc_prediction/DSINE"]
 	path = FOCUS/toc_prediction/DSINE
 	url = https://github.com/baegwangbin/DSINE
+[submodule "FOCUS/utils/FOUND"]
+	path = FOCUS/utils/FOUND
+	url = https://github.com/OllieBoyne/FOUND
