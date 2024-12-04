@@ -1,7 +1,7 @@
 """Run COLMAP using our TOC matches."""
 import os
 
-from FOCUS.matching import correspondence, view, match
+from FOCUS.matching import correspondence, match
 from FOCUS.data.dataset import load_views
 from pathlib import Path
 from FOCUS.calibration.colmap_database import COLMAPDatabase
@@ -12,7 +12,6 @@ def toc_matches_to_database(image_dir: Path, predictions_dir: Path, output_dir: 
     """Using TOC matches, form COLMAP database for BA."""
 
     views = load_views(predictions_dir)
-    views = [view.FusionView.from_view(v, idx=i) for i, v in enumerate(views)]
 
     correspondences = match.find_matches(views, num_correspondences=num_correspondences,
                                          max_dist=0.002,

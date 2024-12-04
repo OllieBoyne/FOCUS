@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 import torch
 
 from FOCUS.matching.correspondence import Correspondence
-from FOCUS.matching.view import View
+from FOCUS.data.view import View
 import trimesh
 
 

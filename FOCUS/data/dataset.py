@@ -1,35 +1,15 @@
 """A dataset which loads in images, inference results, and calibration into a single,
     unified format."""
 
-import functools
-from time import perf_counter
-
 import cv2
 from pathlib import Path
 import numpy as np
 import json
 import os
 
+from FOCUS.data.view import View
 from FOCUS.utils import normals as normals_utils
 
-import dataclasses
-
-@dataclasses.dataclass
-class View:
-    rgb: np.ndarray
-
-    norm_rgb: np.ndarray
-    toc_rgb: np.ndarray
-    norm_unc: np.ndarray
-    toc_unc: np.ndarray
-    mask: np.ndarray
-    norm_xyz: np.ndarray
-
-    calibration_data: dict
-    key: str = None
-
-    def __post_init__(self):
-        self.norm_xyz = normals_utils.rgb2xyz(self.norm_rgb)
 
 # @functools.lru_cache(maxsize=100)
 def load_view(directory: Path) -> View:
@@ -45,7 +25,16 @@ def load_view(directory: Path) -> View:
 
 def load_views(directory: Path, ignore_list=('colmap', 'frames', 'videos', 'logs')) -> [View]:
     """Load in all views from a directory."""
-    return [load_view(directory / d) for d in sorted(os.listdir(directory)) if os.path.isdir(directory / d) and d not in ignore_list]
+    idx = 0
+    views = []
+    for file in os.listdir(directory):
+        if os.path.isdir(directory / file) and file not in ignore_list:
+            view = load_view(directory / file)
+            view.idx = idx
+            views.append(view)
+            idx += 1
+
+    return views
 
 def _load_image_data( directory):
     return {'rgb': _get_image(directory, "rgb")}
@@ -59,10 +48,7 @@ def _load_inference_data(directory):
 
     mask = mask > 0
 
-    norm_xyz = normals_utils.rgb2xyz(norm_rgb)
-    norm_unc = norm_unc / 255.0
-
-    return {'norm_rgb': norm_rgb, 'toc_rgb': toc_rgb, 'toc_unc': toc_unc, 'norm_unc': norm_unc, 'mask': mask, 'norm_xyz': norm_xyz}
+    return {'norm_rgb': norm_rgb, 'toc_rgb': toc_rgb, 'toc_unc': toc_unc, 'norm_unc': norm_unc, 'mask': mask}
 
 def _load_calibration_data(directory: Path):
     filepath = directory / "colmap.json"

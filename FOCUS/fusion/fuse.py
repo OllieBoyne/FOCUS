@@ -1,12 +1,11 @@
 # from FOCUS import camera
 import numpy as np
 
-from FOCUS.matching.view import FusionView
 from FOCUS.matching import match
 from FOCUS.fusion import fused_point_cloud
 from FOCUS.utils import visualize
 
-from FOCUS.data.dataset import View
+from FOCUS.data.view import View
 import json
 import torch
 
@@ -29,13 +28,6 @@ def fuse(views: [View], output_folder: Path, hyperparameters: FusionHyperparamet
 
     output_folder.mkdir(exist_ok=True, parents=True)
     hyperparameters.save(output_folder / "hyperparameters.json")
-
-    new_views = []
-    for i, view in enumerate(views):
-        v = FusionView.from_view(view, idx=i)
-        new_views.append(v)
-
-    views = new_views
 
     cameras = camera.Camera(
         R=torch.stack([torch.from_numpy(v.R) for v in views]).float(),
