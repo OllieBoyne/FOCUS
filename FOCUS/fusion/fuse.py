@@ -28,10 +28,7 @@ def fuse(views: [View], output_folder: Path, hyperparameters: FusionHyperparamet
     time_start = perf_counter()
 
     output_folder.mkdir(exist_ok=True, parents=True)
-
-    # Save hyperparameters as JSON
-    with open(output_folder / "hyperparameters.json", "w") as f:
-        json.dump(dataclasses.asdict(hyperparameters), f)
+    hyperparameters.save(output_folder / "hyperparameters.json")
 
     new_views = []
     for i, view in enumerate(views):
