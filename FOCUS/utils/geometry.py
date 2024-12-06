@@ -1,5 +1,6 @@
 import numpy as np
 import trimesh
+from pytorch3d.structures import Meshes
 
 def euler_to_rotation_matrix(euler):
 	"""Given euler angles in degrees, return a rotation matrix"""
@@ -29,3 +30,15 @@ def export_pointcloud_with_normals(points, normals, loc: str):
 
 	cloud = trimesh.PointCloud(vertices=points, normals=normals)
 	cloud.export(loc)
+
+def pytorch3d_meshes_to_trimesh(meshes: Meshes) -> trimesh.Trimesh:
+	"""Convert a PyTorch3D Meshes object to a trimesh object
+	Args:
+		meshes: Meshes object
+	Returns:
+		trimesh object"""
+
+	if len(meshes) > 1: raise ValueError("Only one mesh supported.")
+	return trimesh.Trimesh(vertices=meshes.verts_packed().cpu().detach().numpy(),
+                           faces = meshes.faces_packed().cpu().detach().numpy(),
+						   process=False)

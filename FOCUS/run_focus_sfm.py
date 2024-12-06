@@ -20,8 +20,15 @@ from FOCUS.fusion import fuse
 from FOCUS.data.dataset import load_views
 from FOCUS.fusion.hyperparameters import FusionHyperparameters
 
+from FOCUS.optim import optim
+from FOCUS.optim.hyperparameters import OptimHyperparameters
 
-parser = argparse.ArgumentParser(description="Fuse a set of views into a point cloud.")
+parser = argparse.ArgumentParser(description="Reconstruct a 3D model from views.")
+
+parser.add_argument('--method', type=str, default='sfm', choices=['sfm', 'o'],
+                    help='Method to use for reconstruction (sfm or o).')
+method = parser.parse_known_args()[0].method
+
 parser.add_argument('--make_predictions', action='store_true', help='Predictions do not exist: make predictions for TOC and normals.')
 
 parser.add_argument("--source_folder", type=Path, help="Directory of source images/predictions.")
@@ -42,12 +49,13 @@ parser.add_argument('--toc_model_path', type=Path, help='Path to predictor model
 parser.add_argument('--render', action='store_true', help='Render the output meshes.')
 parser.add_argument('--produce_videos', action='store_true', help='Produce videos of TOC, normals etc.')
 
-FusionHyperparameters.add_to_argparse(parser)
+if method == 'o':
+    OptimHyperparameters.add_to_argparse(parser)
+else:
+    FusionHyperparameters.add_to_argparse(parser)
 
 render_meshes_script = 'FOCUS/vis/render_meshes.py'
 produce_videos_script = 'FOCUS/vis/video_to_predictions.py'
-
-# TODO: Add hyperparams
 
 def _frames_from_video(args):
 
@@ -151,24 +159,37 @@ if __name__ == "__main__":
         # Copy over predictions.
         shutil.copytree(source_folder, args.output_folder, dirs_exist_ok=True)
 
-    with runner('FOCUS-SfM', 'Running FOCUS-SfM'):
-        hyperparams = FusionHyperparameters.from_args(args, is_world_space=not args.make_predictions)
-        views = load_views(args.output_folder)
-        fuse.fuse(views, args.output_folder, hyperparameters=hyperparams)
+    if args.method == 'o':
+        with runner('Optim', 'Running Optim'):
+            hyperparams = OptimHyperparameters.from_args(args, is_world_space=not args.make_predictions)
+            views = load_views(args.output_folder)
+            optim.optim(views, args.output_folder, hyperparameters=hyperparams)
+
+    else:
+        with runner('FOCUS-SfM', 'Running FOCUS-SfM'):
+            hyperparams = FusionHyperparameters.from_args(args, is_world_space=not args.make_predictions)
+            views = load_views(args.output_folder)
+            fuse.fuse(views, args.output_folder, hyperparameters=hyperparams)
 
     if args.render:
         with runner('Render', 'Rendering meshes'):
 
             command = [sys.executable, render_meshes_script, '--input_directory', str(args.output_folder)]
 
-            process1 = subprocess.Popen(command + ['--use_color', '1'], stdout=runner.logfile)
-            process2 = subprocess.Popen(command + ['--use_color', '0'], stdout=runner.logfile)
+            processes = [subprocess.Popen(command + ['--use_color', '0'], stdout=runner.logfile)]
+            if method == 'sfm':
+                processes.append(subprocess.Popen(command + ['--use_color', '1'], stdout=runner.logfile))
 
-            # Wait for both processes to complete
-            process1.wait()
-            process2.wait()
+            # Wait for all rendering processes to complete
+            for process in processes:
+                process.wait()
 
     if args.produce_videos:
         with runner('Videos', 'Producing videos'):
-            subprocess.run([sys.executable, produce_videos_script, '--predictions_folder', str(args.output_folder),
-                            '--output_folder', str(args.output_folder / 'videos')])
+
+            command = [sys.executable, produce_videos_script, '--predictions_folder', str(args.output_folder), '--output_folder', str(args.output_folder / 'videos')]
+
+            if method == 'o':
+                command += ['--no_mesh_color']
+
+            subprocess.run(command)

@@ -22,6 +22,8 @@ parser.add_argument("--model_path", type=Path, help="Path to predictor model.", 
 
 parser.add_argument('--fps', type=int, default=60, help='Frames per second of output video.')
 
+parser.add_argument('--no_mesh_color', action='store_true', help='Do not use colored mesh.')
+
 FTYPES = ('rgb', 'toc', 'normal', 'norm_unc', 'toc_unc', 'mask', 'mesh_no_color', 'mesh_color')
 STACK_FTYPES = ('rgb', 'toc', 'normal', 'mesh_no_color', 'mesh_color')
 
@@ -55,6 +57,14 @@ def run(args):
 
     out_frames = defaultdict(list)
 
+    if args.no_mesh_color:
+        ftypes = tuple(ftype for ftype in FTYPES if ftype != 'mesh_color')
+        stack_ftypes = tuple(ftype for ftype in STACK_FTYPES if ftype != 'mesh_color')
+
+    else:
+        ftypes = FTYPES
+        stack_ftypes = STACK_FTYPES
+
     if args.predictions_folder is None:
         frames = imageio.mimread(args.video_path, memtest=False)
 
@@ -64,7 +74,7 @@ def run(args):
                                      img_keys=keys, device=None)
 
             for key in keys:
-                for ftype in FTYPES:
+                for ftype in ftypes:
                     frame = cv2.imread(f'{tempdir}/{key}/{ftype}.png')
                     out_frames[ftype].append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
@@ -73,19 +83,19 @@ def run(args):
         keys = [v.key for v in views]
 
         for key in keys:
-            for ftype in FTYPES:
+            for ftype in ftypes:
                 frame = cv2.imread(f'{args.predictions_folder}/{key}/{ftype}.png')
                 if frame is None:
                     print(f'Error reading {args.predictions_folder}/{key}/{ftype}.png')
                     continue
                 out_frames[ftype].append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
-    for ftype in FTYPES:
+    for ftype in ftypes:
         imageio.mimwrite(args.output_folder / f'{ftype}.mp4', out_frames[ftype], fps=args.fps)
 
     # Stack files.
     temp_vids = []
-    for ftype in STACK_FTYPES:
+    for ftype in stack_ftypes:
         temp_vid = tempfile.mktemp(suffix='.mp4')
         overlay_text_on_video(args.output_folder / f'{ftype}.mp4', ftype.upper(), temp_vid)
         temp_vids.append(temp_vid)

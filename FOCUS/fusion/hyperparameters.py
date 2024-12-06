@@ -40,7 +40,7 @@ class FusionHyperparameters(Hyperparameters):
 
     nn_upsampling_factor: int = 8
 
-    is_world_space: bool = False
+    is_world_space: bool = True
 
     @property
     def screened_poisson_parameters(self):

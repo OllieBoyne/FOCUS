@@ -84,6 +84,7 @@ class View:
 
     @property
     def image_shape(self) -> tuple[int, int]:
+        """Return the image shape in (W, H) format."""
         return self.size[1], self.size[0]
 
     @property
