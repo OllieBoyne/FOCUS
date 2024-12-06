@@ -51,6 +51,29 @@ def _register(views, cameras, template_verts: np.ndarray):
 
 	return {'translate': translate, 'scale': np.abs(np.mean(scale)), 'angles': angles}
 
+def _sample_views(views, num_samples_per_view, device=None):
+	"""Sample points on the TOC images."""
+	pixel_values = []
+	toc_values = []
+	toc_unc_values = []
+	for view in views:
+		mask_batch = torch.from_numpy(view.mask).unsqueeze(0)
+		samples = sampler.samples_in_mask(mask_batch, num_samples_per_view)
+
+		toc_image_samples = sampler.sample_image(torch.from_numpy(view.toc_rgb).unsqueeze(0), samples)
+		toc_unc_image_samples = sampler.sample_image(torch.from_numpy(view.toc_unc).unsqueeze(0), samples)
+
+		pixel_values.append(samples)
+		toc_values.append(toc_image_samples)
+		toc_unc_values.append(toc_unc_image_samples)
+
+	pixel_values = torch.concatenate(pixel_values).to(device)
+	toc_values = torch.concatenate(toc_values).to(device)
+	toc_unc_values = torch.concatenate(toc_unc_values).to(device)
+
+	toc_values.requires_grad = True  # Necessary for uncertainty propagation.
+
+	return pixel_values, toc_values, toc_unc_values
 
 def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperparameters = OptimHyperparameters()):
 
@@ -71,6 +94,9 @@ def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperpar
 		focal_length=torch.stack([torch.tensor([v.f]) for v in views]),
 	).to(device)
 
+	# Precompute pixel transform to save time.
+	project_transform = cameras.get_world_to_pix_transform()
+
 	# Initial registration if needed.
 	if not hyperparameters.is_world_space:
 		reg = _register(views, cameras, template_verts.cpu().detach().numpy())
@@ -81,29 +107,13 @@ def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperpar
 
 	def _optimize(optim, num_iters):
 		losses = []
+
+		pixel_values, toc_values, toc_unc_values = _sample_views(views, hyperparameters.num_samples_per_view, device=device)
+
 		with tqdm(np.arange(num_iters)) as tqdm_it:
 			for i in tqdm_it:
+
 				optim.zero_grad()
-
-				pixel_values = []
-				toc_values = []
-				toc_unc_values = []
-				for view in views:
-					mask_batch = torch.from_numpy(view.mask).unsqueeze(0)
-					samples = sampler.samples_in_mask(mask_batch, hyperparameters.num_samples_per_view)
-
-					toc_image_samples = sampler.sample_image(torch.from_numpy(view.toc_rgb).unsqueeze(0), samples)
-					toc_unc_image_samples = sampler.sample_image(torch.from_numpy(view.toc_unc).unsqueeze(0), samples)
-
-					pixel_values.append(samples)
-					toc_values.append(toc_image_samples)
-					toc_unc_values.append(toc_unc_image_samples)
-
-				pixel_values = torch.concatenate(pixel_values).to(device)
-				toc_values = torch.concatenate(toc_values).to(device)
-				toc_unc_values = torch.concatenate(toc_unc_values).to(device)
-
-				toc_values.requires_grad = True # Necessary for uncertainty propagation.
 
 				# Convert to un-normalized FIND space.
 				x = toc_values * (max_bounds - min_bounds) + min_bounds
@@ -121,7 +131,7 @@ def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperpar
 				X = T.transform_points(x_flat + offsets)
 				X = X.reshape(len(views), -1, 3)
 
-				reproj_points = cameras.project(X, pixel=True)
+				reproj_points = project_transform.transform_points(X, eps=1e-6)[..., :2]
 
 				# import matplotlib
 				# idxs = [0, 1, 2]
@@ -158,7 +168,7 @@ def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperpar
 				# Normalize all to image space.
 				reproj_error = reproj_points - pixel_values
 
-				image_size = torch.tensor(view.image_shape, device=reproj_points.device)
+				image_size = torch.tensor(views[0].image_shape, device=reproj_points.device)
 				reproj_points_variance_normalized = reproj_points_variance / (image_size ** 2)
 
 				reproj_error_normalized = reproj_error / image_size.unsqueeze(0)
@@ -169,12 +179,12 @@ def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperpar
 
 				else:
 					loss = torch.norm(reproj_error_normalized, dim=-1).mean()
-
 				loss.backward()
 
 				losses.append(loss.item())
 
 				optim.step()
+
 				tqdm_it.set_description(f"Reproj error: {torch.norm(reproj_error, dim=-1).mean().item():.2f} pix.")
 
 		return losses
@@ -211,8 +221,8 @@ def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperpar
 
 if __name__ == '__main__':
 	from FOCUS.data.dataset import load_views
-	v = load_views(Path('data/dummy_data_pred'))
-	# v = load_views(Path('data/dummy_data/0035_mono3d_v11_t=56'))
+	# v = load_views(Path('data/dummy_data_pred'))
+	v = load_views(Path('data/dummy_data/0035_mono3d_v11_t=56'))
 	o = Path("exp/tmp/FOCUS-O_test")
 	h = OptimHyperparameters(is_world_space=False)
 	optim(v, o, h)
