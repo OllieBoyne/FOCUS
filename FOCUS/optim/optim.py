@@ -31,14 +31,24 @@ from pytorch3d.transforms import euler_angles_to_matrix, Transform3d
 
 # TODO: Handle footedness.
 
+def _trimesh_transform_to_pytorch3d(T):
+
+	scale, shear, angles, translate, persp = trimesh.transformations.decompose_matrix(T)
+
+	# Trimesh returns as sxyz, need to convert to rxyz for pytorch3d.
+	euler_rot = trimesh.transformations.euler_from_matrix(trimesh.transformations.euler_matrix(*angles, 'sxyz'), 'rxyz')
+
+	return translate, scale, np.array(euler_rot)
+
 def _register(views, cameras, template_verts: np.ndarray):
 	"""For cases in which the cameras are not in world space, initialize a good registration for the mesh."""
-	correspondences = match.find_matches(views, num_correspondences=100,
+	correspondences = match.find_matches(views, num_correspondences=500,
 										 max_dist=0.002,
 										 subpixel_scaling=8)
 
 	point_cloud = fused_point_cloud.FusedPointCloud(correspondences, len(views))
 	point_cloud.triangulate(triangulation.cameras_to_projection_matrix(cameras).cpu())
+	point_cloud.remove_outliers(neighbours=50, std_ratio=1.0)
 
 	min_bounds, max_bounds = np.min(template_verts, axis=0), np.max(template_verts, axis=0)
 
@@ -47,9 +57,9 @@ def _register(views, cameras, template_verts: np.ndarray):
 
 	T, a, cost = trimesh.registration.procrustes(source_points, target_points, reflection=True)
 
-	scale, shear, angles, translate, persp = trimesh.transformations.decompose_matrix(T)
+	translate, scale, euler = _trimesh_transform_to_pytorch3d(T)
 
-	return {'translate': translate, 'scale': np.abs(np.mean(scale)), 'angles': angles}
+	return {'translate': translate, 'scale': np.abs(np.mean(scale)), 'euler': euler, 'source_points': source_points, 'target_points': target_points}
 
 def _sample_views(views, num_samples_per_view, device=None):
 	"""Sample points on the TOC images."""
@@ -97,13 +107,12 @@ def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperpar
 	# Precompute pixel transform to save time.
 	project_transform = cameras.get_world_to_pix_transform()
 
-	# Initial registration if needed.
-	if not hyperparameters.is_world_space:
-		reg = _register(views, cameras, template_verts.cpu().detach().numpy())
-		with torch.no_grad():
-			model.trans.data = torch.tensor(reg['translate'], device=device, dtype=torch.float32).unsqueeze(0)
-			model.scale.data *= reg['scale']
-			model.rot.data = torch.tensor(reg['angles'], device=device, dtype=torch.float32).unsqueeze(0)
+	# Initialize registration parameters with quick alignment to triangulated points.
+	reg = _register(views, cameras, template_verts.cpu().detach().numpy())
+	with torch.no_grad():
+		model.trans.data = torch.tensor(reg['translate'], device=device, dtype=torch.float32).unsqueeze(0)
+		model.scale.data *= reg['scale']
+		model.rot.data = torch.tensor(reg['euler'], device=device, dtype=torch.float32).unsqueeze(0)
 
 	def _optimize(optim, num_iters):
 		losses = []
@@ -132,17 +141,6 @@ def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperpar
 				X = X.reshape(len(views), -1, 3)
 
 				reproj_points = project_transform.transform_points(X, eps=1e-6)[..., :2]
-
-				# import matplotlib
-				# idxs = [0, 1, 2]
-				# matplotlib.use('TkAgg')
-				# fig, axs = plt.subplots(ncols=2, nrows=len(idxs))
-				# for i in range(len(idxs)):
-				# 	axs[i, 0].imshow(views[i].toc_rgb)
-				# 	axs[i, 1].imshow(views[i].toc_rgb)
-				# 	axs[i, 0].scatter(pixel_values[i, :, 0].cpu().detach().numpy(), pixel_values[i, :, 1].cpu().detach().numpy(), s=1, c='b')
-				# 	axs[i, 1].scatter(reproj_points[i, :, 0].cpu().detach().numpy(), reproj_points[i, :, 1].cpu().detach().numpy(), s=1, c='r')
-				# plt.show()
 
 				# Calculate Jacobian
 				J = torch.zeros(len(views), hyperparameters.num_samples_per_view, 2, 3, device=toc_values.device, dtype=toc_values.dtype)
@@ -190,15 +188,11 @@ def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperpar
 		return losses
 
 
-	optimizers = [torch.optim.SGD(model.params['reg'], lr=0.001),
+	optimizers = [torch.optim.SGD(model.params['reg'], lr=0.002),
 				  torch.optim.Adam(model.params["deform"] + model.params['reg'], lr=1e-3),
 				  ]
 
-	num_iters = [250, 250]
-
-	if not hyperparameters.is_world_space:
-		optimizers.insert(0, torch.optim.SGD(model.params['reg'], lr=0.02, momentum=0.9))
-		num_iters.insert(0, 250)
+	num_iters = [500, 500]
 
 	its_so_far = 0
 	for i in range(len(optimizers)):
@@ -222,7 +216,8 @@ def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperpar
 if __name__ == '__main__':
 	from FOCUS.data.dataset import load_views
 	# v = load_views(Path('data/dummy_data_pred'))
-	v = load_views(Path('data/dummy_data/0035_mono3d_v11_t=56'))
-	o = Path("exp/tmp/FOCUS-O_test")
+	# v = load_views(Path('data/dummy_data/0035_mono3d_v11_t=56'))
+	v = load_views(Path('/Users/ollie/Documents/repos/phd-projects/FOCUS/exp/tmp/focus_o_demo'))
+	o = Path("exp/tmp/focus_o_demo")
 	h = OptimHyperparameters(is_world_space=False)
 	optim(v, o, h)
