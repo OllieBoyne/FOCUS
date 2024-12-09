@@ -27,7 +27,7 @@ def load_views(directory: Path, ignore_list=('colmap', 'frames', 'videos', 'logs
     """Load in all views from a directory."""
     idx = 0
     views = []
-    for file in os.listdir(directory):
+    for file in sorted(os.listdir(directory)):
         if os.path.isdir(directory / file) and file not in ignore_list:
             view = load_view(directory / file)
             view.idx = idx
