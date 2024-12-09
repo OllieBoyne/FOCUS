@@ -35,14 +35,15 @@ def _trimesh_transform_to_pytorch3d(T):
 
 	scale, shear, angles, translate, persp = trimesh.transformations.decompose_matrix(T)
 
-	# Trimesh returns as sxyz, need to convert to rxyz for pytorch3d.
-	euler_rot = trimesh.transformations.euler_from_matrix(trimesh.transformations.euler_matrix(*angles, 'sxyz'), 'rxyz')
+	# Trimesh returns as sxyz, need to convert to rxyz for PyTorch3d, and transpose to deal with different
+	# Matrix notation.
+	euler_rot = trimesh.transformations.euler_from_matrix(trimesh.transformations.euler_matrix(*angles, 'sxyz').T, 'rxyz')
 
 	return translate, scale, np.array(euler_rot)
 
 def _register(views, cameras, template_verts: np.ndarray):
 	"""For cases in which the cameras are not in world space, initialize a good registration for the mesh."""
-	correspondences = match.find_matches(views, num_correspondences=500,
+	correspondences = match.find_matches(views, num_correspondences=1000,
 										 max_dist=0.002,
 										 subpixel_scaling=8)
 
@@ -59,7 +60,7 @@ def _register(views, cameras, template_verts: np.ndarray):
 
 	translate, scale, euler = _trimesh_transform_to_pytorch3d(T)
 
-	return {'translate': translate, 'scale': np.abs(np.mean(scale)), 'euler': euler, 'source_points': source_points, 'target_points': target_points}
+	return {'translate': translate, 'scale': scale, 'euler': euler, 'source_points': source_points, 'target_points': target_points}
 
 def _sample_views(views, num_samples_per_view, device=None):
 	"""Sample points on the TOC images."""
@@ -111,7 +112,7 @@ def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperpar
 	reg = _register(views, cameras, template_verts.cpu().detach().numpy())
 	with torch.no_grad():
 		model.trans.data = torch.tensor(reg['translate'], device=device, dtype=torch.float32).unsqueeze(0)
-		model.scale.data *= reg['scale']
+		model.scale.data *= torch.tensor(reg['scale'], device=device, dtype=torch.float32).unsqueeze(0)
 		model.rot.data = torch.tensor(reg['euler'], device=device, dtype=torch.float32).unsqueeze(0)
 
 	def _optimize(optim, num_iters):
@@ -212,12 +213,3 @@ def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperpar
 	hyperparameters.save(output_folder / "hyperparameters.json")
 
 	plt.savefig(output_folder / "loss.png")
-
-if __name__ == '__main__':
-	from FOCUS.data.dataset import load_views
-	# v = load_views(Path('data/dummy_data_pred'))
-	# v = load_views(Path('data/dummy_data/0035_mono3d_v11_t=56'))
-	v = load_views(Path('/Users/ollie/Documents/repos/phd-projects/FOCUS/exp/tmp/focus_o_demo'))
-	o = Path("exp/tmp/focus_o_demo")
-	h = OptimHyperparameters(is_world_space=False)
-	optim(v, o, h)
