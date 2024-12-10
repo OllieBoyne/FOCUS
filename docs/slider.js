@@ -128,10 +128,10 @@ document.addEventListener("DOMContentLoaded", function() {
   createImageSliderSet({
     id:"normals",
     baseDirectory: "images/itw",
-    baseImages: ["0.png", "1.png", "2.png", "3.png", "4.png"],
-    directories: ["norm", "unc"],
-    nOverlays: 2,
-    overlayNames: ["Normals", "Uncertainty"],
+    baseImages: ["000972.png", "000813.png", "000814.png", "000646.png", "000010.png"],
+    directories: ["toc", "normal", "mask"],
+    nOverlays: 3,
+    overlayNames: ["Correspondences", "Normals", "Mask"],
     imageWrapperId: "image-wrapper-normals",
     radioButtonsId: "radio-buttons-normals",
     sliderId: "slider-normals"
