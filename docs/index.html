@@ -104,10 +104,9 @@
 
                     <img src="images/results/focus_sfm_ollie_carpet_2.gif" style="width: 100%;"/>
                     <ul>
-                        <li> We produce a <a href="http://github.com/OllieBoyne/SynFoot" class="text-link">large photorealistic synthetic foot dataset</a> using <a href="http://ollieboyne.github.io/BlenderSynth" class="text-link">BlenderSynth</a>.</li>
-                        <li> We train a predictor to predict <a href="https://github.com/baegwangbin/surface_normal_uncertainty" class="text-link">surface normals and uncertainties</a>.</li>
-                        <li> We use surface normals and uncertainty to fit the <a href="http://ollieboyne.github.io/FIND" class="text-link">FIND</a> foot model to multiview images </li>
-                        <li> We beat <a href="https://github.com/baegwangbin/surface_normal_uncertainty" class="text-link">SOTA</a> on foot surface normal prediction, and <a href="https://colmap.github.io" class="text-link">COLMAP</a> on multiview reconstruction, also requiring far fewer views.</li>
+                        <li> We extend synthetic dataset <a href="http://github.com/OllieBoyne/SynFoot" class="text-link">SynFoot</a> to include dense correspondences.</li>
+                        <li> We train a predictor to predict these correspondences on in-the-wild images..</li>
+                        <li> We recover a 3D model from multi-view images using the correspondences by either (i) matching and triangulation or (ii) fitting the <a href="http://ollieboyne.github.io/FIND" class="text-link">FIND</a> model.</li>
                     </ul>
                 </div>
             </div>
