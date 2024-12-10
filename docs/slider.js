@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", function() {
     id:"synth",
     baseDirectory: "images/synth",
     baseImages: ["030.png", "057.png", "075.png", "197.png", "032.png"],
-    directories: ["TOC", "normals", "mask"],
+    directories: ["toc", "normals", "mask"],
     nOverlays: 3,
     overlayNames: ["Correspondences", "Normals", "Mask"],
     imageWrapperId: "image-wrapper-synth",
