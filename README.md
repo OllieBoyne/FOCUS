@@ -34,7 +34,7 @@ See the `run_focus.py` script for more options.
 
 | Item                                            | Description                                    | Download to      |
 |-------------------------------------------------|------------------------------------------------|------------------|
-| [TOC model](google.com)                         | A pre-trained correspondence predictor model.  | `data/toc_model` |
+| [TOC model](https://drive.google.com/file/d/1aU1Bf_pE7WjtWAX85ru9htQGygmTDIUV/view?usp=share_link)                         | A pre-trained correspondence predictor model.  | `data/toc_model` |
 | [Foot 3D](https://github.com/OllieBoyne/Foot3D) | Multi-view foot dataset for evaluating method. | `data/Foot3D`     |
 
 ### Citation
