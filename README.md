@@ -1,13 +1,51 @@
-# FOCUS
+<p align="center">
+  <a href="http://ollieboyne.github.io/FOCUS">
+        <img width=70% src="https://www.ollieboyne.com/FOCUS/images/logos/focus_v1.png">
+  </a>
+</p>
+
+This repository contains the code for foot reconstruction using dense correspondences, as shown in our paper:
+
+> **FOCUS: Multi-View Foot Reconstruction from Synthetically Trained Dense Correspondences**  \
+> 3DV 2025 \
+> [Oliver Boyne](https://ollieboyne.github.io) and [Roberto Cipolla](https://mi.eng.cam.ac.uk/~cipolla/) \
+> [[arXiv]]() [[project page]](https://ollieboyne.github.io/FOCUS/)
+
+## Set-up
+
+1) `git clone --recurse-submodules https://github.com/OllieBoyne/FOCUS.git`
+2) Install dependencies: `pip install -r requirements.txt`
+3) Install FOCUS: `pip install --editable .`
+4) Download any required data (see Downloads section).
+5) If using uncalibrated images, install [COLMAP](https://colmap.github.io/install.html).
+
+## Usage
+
+FOCUS can be run using the `FOCUS/run_focus.py` script:
+
+- Use the `--method` flag to choose between `sfm` (FOCUS-SfM) and `o` (FOCUS-O).
+- For a directory of images, use the `--source_folder` flag.
+- For a video, use the `--video_path` flag.
+
+See the `run_focus.py` script for more options.
 
 
-Install
+## Downloads
 
-git clone --recurse-submodules https://github.com/OllieBoyne/FOCUS.git
+| Item                                            | Description                                    | Download to      |
+|-------------------------------------------------|------------------------------------------------|------------------|
+| [TOC model](google.com)                         | A pre-trained correspondence predictor model.  | `data/toc_model` |
+| [Foot 3D](https://github.com/OllieBoyne/Foot3D) | Multi-view foot dataset for evaluating method. | `data/Foot3D`     |
 
-Install FOCUS and dependencies
+### Citation
+
+If you use our work, please cite:
 
 ```
-pip install --editable .
-pip install -r requirements.txt
+@inproceedings{boyne2025focus,
+            title={FOCUS: Multi-View Foot Reconstruction from Synthetically Trained Dense Correspondences},
+            author={Boyne, Oliver and Cipolla, Roberto},
+            booktitle={2025 International Conference on 3D Vision (3DV)},
+            year={2025}
+}
 ```

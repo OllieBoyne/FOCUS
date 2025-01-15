@@ -27,7 +27,6 @@ parser = argparse.ArgumentParser(description="Reconstruct a 3D model from views.
 
 parser.add_argument('--method', type=str, default='sfm', choices=['sfm', 'o'],
                     help='Method to use for reconstruction (sfm or o).')
-method = parser.parse_known_args()[0].method
 
 parser.add_argument('--make_predictions', action='store_true', help='Predictions do not exist: make predictions for TOC and normals.')
 
@@ -44,10 +43,12 @@ parser.add_argument('--num_frames', type=int, help='Number of frames to extract 
 parser.add_argument('--num_colmap_matches', type=int, default=2500, help='Number of matches to use for COLMAP.')
 parser.add_argument('--colmap_exe', default='colmap', help='Path to COLMAP executable.')
 
-parser.add_argument('--toc_model_path', type=Path, help='Path to predictor model.', default='data/toc_model/densedepth_v12/t=120.pth')
+parser.add_argument('--toc_model_path', type=Path, help='Path to predictor model.', default='data/toc_model/densedepth_toc_predictor.pth')
 
 parser.add_argument('--render', action='store_true', help='Render the output meshes.')
 parser.add_argument('--produce_videos', action='store_true', help='Produce videos of TOC, normals etc.')
+
+method = parser.parse_known_args()[0].method
 
 if method == 'o':
     OptimHyperparameters.add_to_argparse(parser)
