@@ -174,9 +174,6 @@
                     <figcaption><strong>In-the-wild predictions (drag the slider to view)</strong></figcaption>
                 </figure>
 
-
-                    <img src="images/results/normals-table-1.png"/>
-
                 </div>
 
             </div>
@@ -195,29 +192,28 @@
                     <p><b>FOCUS-SfM</b>: Collect correspondences across views, triangulate, and run Poisson reconstruction to recover a surface.</p>
                     <p><b>FOCUS-O</b>: Fit the parameterized FIND model directly to the dense correspondences.</p>
                 <p>We fit the parameters of the FIND model to the surface normals, using the uncertainty to weight the loss function.</p>
-                <p>We do this in a multiview setting, and produce better reconstructions than <a href="https://colmap.github.io" class="text-link">COLMAP</a>, evaluated on our new <a href="https://github.com/OllieBoyne/Foot3D", class="text-link">benchmark foot reconstruction dataset</a>, available for download.</p>
+                <p>We do this in a multiview setting, and produce better reconstructions than <a href="https://colmap.github.io" class="text-link">COLMAP</a>, evaluated on the <a href="https://github.com/OllieBoyne/Foot3D", class="text-link">Foot3D</a> benchmark foot reconstruction dataset.</p>
                 <p>We can do this accurately with as few as 3 views, whereas <a href="https://colmap.github.io" class="text-link">COLMAP</a> needs 15+.</p>
 
 
                 <figure>
-                  <img src="images/results/3d-constr-1.png"/>
-                  <figcaption><strong>3D reconstruction. Left: A single view of a multi-view reconstruction. Right: Our reconstructed model.</strong></figcaption>
+                  <img src="images/results/reconstr_qualitative.png"/>
+                  <figcaption><strong>Our methods provide a better reconstruction than FOUND and COLMAP.</strong></figcaption>
                 </figure>
 
 
                 <figure>
-                  <img src="images/results/3d-table-1.png"/>
+                  <img src="images/tables/3d_reconstruction_results.png"/>
+                    <figcaption><strong>Our methods improve beat COLMAP on surface normal reconstruction, and FOUND on chamfer error.</strong></figcaption>
                 </figure>
-
 
                 <figure>
-                    <div style="width: 50%;margin-left: auto; margin-right: auto;">
-                    <img src="images/results/num-view-1.png"/>
-                    </div>
-                 <figcaption><strong>Reconstruction results based on number of input views. We show that COLMAP fails with fewer than 15 views, whereas we can handle as few as 3. Also our normal loss, and use of normal uncertainty both increase our reconstruction quality.</strong></figcaption>
+                    <img src="images/tables/inference_info.png"/>
+                    <figcaption><strong>Our method has far lower requirements.</strong></figcaption>
                 </figure>
 
-                    <p>Thanks to our dense correspondences, we can reconstruct from a completely uncalibrated imageset - even when backgrounds are untextured and typical camera calibration would fail. Try our demo on Github.</p>
+
+                <p>Thanks to our dense correspondences, we can reconstruct from a completely uncalibrated imageset - even when backgrounds are untextured and typical camera calibration would fail. Try our demo on <a href="https://github.com/OllieBoyne/FOCUS">Github</a>.</p>
 
                 </div>
 
@@ -240,12 +236,12 @@
                 If you make use of this project, please cite the following paper:
             </div>
 
-            <pre>@inproceedings{boyne2024found,
-            title={FOUND: {F}oot {O}ptimisation with {U}ncertain {N}ormals for Surface {D}eformation using Synthetic Data},
-            author={Boyne, Oliver, and Bae, Gwangbin, and Charles, James and Cipolla, Roberto},
-            booktitle={Winter Conference on Applications of Computer Vision (WACV)},
-            year={2024}
-        }</pre>
+            <pre>@inproceedings{boyne2025focus,
+            title={FOCUS: Multi-View Foot Reconstruction from Synthetically Trained Dense Correspondences},
+            author={Boyne, Oliver and Cipolla, Roberto},
+            booktitle={2025 International Conference on 3D Vision (3DV)},
+            year={2025}
+}</pre>
 
         </div>
     </section>
