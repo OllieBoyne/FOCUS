@@ -91,7 +91,7 @@ def optim(views: list[View], output_folder: Path, hyperparameters: OptimHyperpar
 	time_start = perf_counter()
 
 	device = get_device()
-	model = found_model.FIND("data/find_nfap").to(device)
+	model = found_model.FIND("data/find").to(device)
 
 	output_folder.mkdir(exist_ok=True, parents=True)
 
