@@ -107,10 +107,10 @@ def evaluate_mesh(
 
         if is_find:
             FIND_cutoff_surface = np.load(
-                os.path.join("data/find_nfap", "templ_masked_faces.npy")
+                os.path.join("data/find", "templ_masked_faces.npy")
             )
             FIND_sole_surface = np.load(
-                os.path.join("data/find_nfap", "templ_sole_faces.npy")
+                os.path.join("data/find", "templ_sole_faces.npy")
             )
             all_masked_faces = np.concatenate([FIND_cutoff_surface, FIND_sole_surface])
 
