@@ -8,6 +8,8 @@ from FOCUS.calibration.colmap_database import COLMAPDatabase
 import numpy as np
 from collections import defaultdict
 
+_IMAGE_EXTENSIONS = ('png', 'jpg', 'jpeg')
+
 def toc_matches_to_database(image_dir: Path, predictions_dir: Path, output_dir: Path, num_correspondences=2500):
     """Using TOC matches, form COLMAP database for BA."""
 
@@ -38,11 +40,14 @@ def toc_matches_to_database(image_dir: Path, predictions_dir: Path, output_dir: 
 
     for v in views:
         key = v.key
-        pth = image_dir / f'{key}.png'
-        if not pth.exists():
-            raise FileNotFoundError(f'Image {pth} does not exist.')
 
-        db.add_image(key + '.png', camera_id1, image_id=v.idx)
+        for ext in _IMAGE_EXTENSIONS:
+            pth = image_dir / f'{key}.{ext}'
+            if pth.exists():
+                db.add_image(key + f'.{ext}', camera_id1, image_id=v.idx)
+                break
+        else:
+            raise FileNotFoundError(f'Image `{key}` does not exist.')
 
     # per view, a mapping of correspondence index -> keypoint index within the image
     correspondence_to_image_idx = defaultdict(dict)
