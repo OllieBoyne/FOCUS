@@ -5,7 +5,6 @@ import os
 import subprocess
 from tqdm import tqdm
 import json
-import warnings
 
 from FOCUS.calibration.colmap_format_conversion import colmap2pytorch3d
 from FOCUS.calibration.custom_matches_colmap import toc_matches_to_database
@@ -39,11 +38,18 @@ def run_colmap(image_dir: Path, output_dir: Path, colmap_exe: str = 'colmap',
     sparse_dir = workspace_dir / 'sparse'
     sparse_dir.mkdir(exist_ok=True)
 
+    img_ids = []
+
     commands = {}
     if predictions_folder is not None:
-        toc_matches_to_database(image_dir, predictions_folder, workspace_dir, num_correspondences=num_correspondences)
+        # Use custom matches.
+        img_ids = toc_matches_to_database(predictions_folder, workspace_dir, num_correspondences=num_correspondences)
+        image_dir = predictions_folder # Switch to image_dir being the predicted images (so that sizing is consistent
+                                       # with predictions).
 
     else:
+
+        img_ids = [os.path.splitext(f)[0] for f in os.listdir(image_dir) if f.endswith(ACCEPTED_IMAGE_EXTENSIONS)]
 
         commands['feature_extractor'] = {
                 'image_path': image_dir,
@@ -75,7 +81,6 @@ def run_colmap(image_dir: Path, output_dir: Path, colmap_exe: str = 'colmap',
 
     # Export per view.
     failed_views = []
-    img_ids = [os.path.splitext(f)[0] for f in os.listdir(image_dir) if f.endswith(ACCEPTED_IMAGE_EXTENSIONS)]
     for view in img_ids:
         view_data = {**output_data['camera']}
 

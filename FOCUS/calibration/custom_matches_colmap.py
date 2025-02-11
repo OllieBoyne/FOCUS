@@ -10,8 +10,10 @@ from collections import defaultdict
 
 _IMAGE_EXTENSIONS = ('png', 'jpg', 'jpeg')
 
-def toc_matches_to_database(image_dir: Path, predictions_dir: Path, output_dir: Path, num_correspondences=2500):
-    """Using TOC matches, form COLMAP database for BA."""
+def toc_matches_to_database(predictions_dir: Path, output_dir: Path, num_correspondences=2500) -> list[str]:
+    """Using TOC matches, form COLMAP database for BA.
+
+    Returns list of image ids"""
 
     views = load_views(predictions_dir)
 
@@ -38,16 +40,10 @@ def toc_matches_to_database(image_dir: Path, predictions_dir: Path, output_dir: 
     )
     camera_id1 = db.add_camera(model1, width1, height1, params1)
 
+    img_ids = []
     for v in views:
-        key = v.key
-
-        for ext in _IMAGE_EXTENSIONS:
-            pth = image_dir / f'{key}.{ext}'
-            if pth.exists():
-                db.add_image(key + f'.{ext}', camera_id1, image_id=v.idx)
-                break
-        else:
-            raise FileNotFoundError(f'Image `{key}` does not exist.')
+        img_ids.append(v.key)
+        db.add_image(v.key + '/rgb.png', camera_id1, image_id=v.idx)
 
     # per view, a mapping of correspondence index -> keypoint index within the image
     correspondence_to_image_idx = defaultdict(dict)
@@ -84,9 +80,4 @@ def toc_matches_to_database(image_dir: Path, predictions_dir: Path, output_dir: 
     db.commit()
     db.close()
 
-if __name__ == '__main__':
-    image_dir = Path('tmp/custom_matches/rgb')
-    predictions_dir = Path('data/dummy_data/0035_mono3d_v11_t=56')
-    output_dir = Path('tmp/custom_matches')
-
-    toc_matches_to_database(image_dir, predictions_dir, output_dir)
+    return img_ids
