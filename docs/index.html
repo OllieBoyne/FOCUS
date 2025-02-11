@@ -191,9 +191,15 @@
 
                     <p><b>FOCUS-SfM</b>: Collect correspondences across views, triangulate, and run Poisson reconstruction to recover a surface.</p>
                     <p><b>FOCUS-O</b>: Fit the parameterized FIND model directly to the dense correspondences.</p>
-                <p>We fit the parameters of the FIND model to the surface normals, using the uncertainty to weight the loss function.</p>
-                <p>We do this in a multiview setting, and produce better reconstructions than <a href="https://colmap.github.io" class="text-link">COLMAP</a>, evaluated on the <a href="https://github.com/OllieBoyne/Foot3D", class="text-link">Foot3D</a> benchmark foot reconstruction dataset.</p>
-                <p>We can do this accurately with as few as 3 views, whereas <a href="https://colmap.github.io" class="text-link">COLMAP</a> needs 15+.</p>
+
+                <figure>
+                  <img src="images/other/method_overviews.png"/>
+<!--                  <figcaption><strong>...</figcaption>-->
+                </figure>
+
+
+                <p>Our methods produce better surface normal reconstructions than <a href="https://colmap.github.io" class="text-link">COLMAP</a>, evaluated on the <a href="https://github.com/OllieBoyne/Foot3D", class="text-link">Foot3D</a> benchmark foot reconstruction dataset.</p>
+                <p>Our methods require as few as 3 views, whereas <a href="https://colmap.github.io" class="text-link">COLMAP</a> needs 15+.</p>
 
 
                 <figure>
@@ -202,18 +208,18 @@
                 </figure>
 
 
-                <figure>
-                  <img src="images/tables/3d_reconstruction_results.png"/>
-                    <figcaption><strong>Our methods improve beat COLMAP on surface normal reconstruction, and FOUND on chamfer error.</strong></figcaption>
+                <figure >
+                  <img src="images/tables/3d_reconstruction_results.png" style="width:75%"/>
+                    <figcaption><strong>Our methods beat COLMAP on surface normal reconstruction, and FOUND on chamfer error.</strong></figcaption>
                 </figure>
 
                 <figure>
-                    <img src="images/tables/inference_info.png"/>
-                    <figcaption><strong>Our method has far lower requirements.</strong></figcaption>
+                    <img src="images/tables/inference_info.png" style="width:75%"/>
+                    <figcaption><strong>Our methods run faster, and do not require differentiable rendering. FOCUS-SfM can even run without a GPU.</strong></figcaption>
                 </figure>
 
 
-                <p>Thanks to our dense correspondences, we can reconstruct from a completely uncalibrated imageset - even when backgrounds are untextured and typical camera calibration would fail. Try our demo on <a href="https://github.com/OllieBoyne/FOCUS">Github</a>.</p>
+                <p>Thanks to our dense correspondences, we can reconstruct from a completely uncalibrated imageset - even when backgrounds are untextured and typical camera calibration would fail. Try our demo on <a href="https://github.com/OllieBoyne/FOCUS" class="text-link">Github</a>.</p>
 
                 </div>
 
