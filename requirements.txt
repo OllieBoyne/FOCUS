@@ -64,7 +64,6 @@ pymeshlab==2023.12.post2
 pyparsing==3.2.0
 pyquaternion==0.9.9
 python-dateutil==2.9.0.post0
-pytorch3d @ git+https://github.com/facebookresearch/pytorch3d.git@81d82980bc82fd605f27cca87f89ba08af94db3d
 pytz==2024.2
 PyYAML==6.0.2
 referencing==0.35.1
@@ -92,3 +91,4 @@ tzdata==2024.2
 urllib3==2.2.3
 Werkzeug==3.0.6
 zipp==3.20.2
+pytorch3d @ git+https://github.com/facebookresearch/pytorch3d.git@81d82980bc82fd605f27cca87f89ba08af94db3d
