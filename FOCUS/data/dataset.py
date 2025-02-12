@@ -80,7 +80,6 @@ def _load_calibration_data(directory: Path):
         'cx': data['cx'],
         'cy': data['cy'],
         'f': data['f'],
-        'k': data['k'],
         'width': data['width'],
         'height': data['height']
     }

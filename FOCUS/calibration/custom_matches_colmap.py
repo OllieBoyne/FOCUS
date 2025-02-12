@@ -33,10 +33,10 @@ def toc_matches_to_database(predictions_dir: Path, output_dir: Path, num_corresp
     # Specify the camera parameters
     image_height, image_width = views[0].rgb.shape[:2]
     model1, width1, height1, params1 = (
-        2, # Simple Radial
+        0, # SIMPLE_PINHOLE
         image_width,
         image_height,
-        np.array((768, image_width / 2, image_height / 2, 0.0)), # f, cx, cy, k
+        np.array((768, image_width / 2, image_height / 2)), # f, cx, cy
     )
     camera_id1 = db.add_camera(model1, width1, height1, params1)
 
