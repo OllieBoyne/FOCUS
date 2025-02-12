@@ -4,7 +4,7 @@
   </a>
 </p>
 
-[splash.webm](https://github.com/user-attachments/assets/664addb6-e46b-4b4b-8e23-96d6d252c96a)
+[splash.webm](https://github.com/user-attachments/assets/185fb860-c356-4645-bd4a-8d39b0da97bd)
 
 This repository contains the code for foot reconstruction using dense correspondences, as shown in our paper:
 
