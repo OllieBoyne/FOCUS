@@ -102,7 +102,11 @@
                 <h1>At a glance</h1>
                 <div class="content has-text-justified-desktop">
 
-                    <img src="images/results/focus_sfm_ollie_carpet_2.gif" style="width: 100%;"/>
+        <video id="videoPlayer" autoplay loop muted playsinline>
+          <source id="videoSource" src="videos/splash_small.webm" type="video/webm">
+          Your browser does not support the video tag.
+        </video>
+
                     <ul>
                         <li> We extend synthetic dataset <a href="http://github.com/OllieBoyne/SynFoot" class="text-link">SynFoot</a> to include dense correspondences.</li>
                         <li> We train a predictor to predict these correspondences on in-the-wild images.</li>
@@ -220,6 +224,8 @@
 
 
                 <p>Thanks to our dense correspondences, we can reconstruct from a completely uncalibrated imageset - even when backgrounds are untextured and typical camera calibration would fail. Try our demo on <a href="https://github.com/OllieBoyne/FOCUS" class="text-link">Github</a>.</p>
+
+                <img src="images/results/focus_sfm_ollie_carpet_2.gif" style="width: 100%;"/>
 
                 </div>
 
