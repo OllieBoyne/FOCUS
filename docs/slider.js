@@ -127,7 +127,7 @@ function animateSlider(id){
 document.addEventListener("DOMContentLoaded", function() {
   createImageSliderSet({
     id:"normals",
-    baseDirectory: "images/itw",
+    baseDirectory: "images/itw_compressed",
     baseImages: ["000972.png", "000813.png", "000814.png", "000646.png", "000010.png"],
     directories: ["toc", "normal", "mask"],
     nOverlays: 3,
@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   createImageSliderSet({
     id:"synth",
-    baseDirectory: "images/synth",
+    baseDirectory: "images/synth_compressed",
     baseImages: ["030.png", "057.png", "075.png", "197.png", "032.png"],
     directories: ["toc", "normals", "mask"],
     nOverlays: 3,
