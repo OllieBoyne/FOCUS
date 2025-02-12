@@ -9,7 +9,7 @@ This repository contains the code for foot reconstruction using dense correspond
 > **FOCUS: Multi-View Foot Reconstruction from Synthetically Trained Dense Correspondences**  \
 > 3DV 2025 \
 > [Oliver Boyne](https://ollieboyne.github.io) and [Roberto Cipolla](https://mi.eng.cam.ac.uk/~cipolla/) \
-> [[arXiv]]() [[project page]](https://ollieboyne.github.io/FOCUS/)
+> [[arXiv]](https://arxiv.org/abs/2502.06367) [[project page]](https://ollieboyne.github.io/FOCUS/)
 
 ## Set-up
 
