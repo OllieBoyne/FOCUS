@@ -95,3 +95,9 @@ class View:
                 n_neighbors=1, n_jobs=-1, algorithm="kd_tree"
             ).fit(self.toc_rgb.reshape(-1, 3))
         return self._nn
+
+    @property
+    def mask_coverage(self) -> float:
+        """Return the mask coverage of the view."""
+        w, h = self.mask.shape
+        return np.sum(self.mask) / (w * h)

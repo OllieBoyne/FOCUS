@@ -8,10 +8,8 @@ import json
 import os
 
 from FOCUS.data.view import View
-from FOCUS.utils import normals as normals_utils
 
 
-# @functools.lru_cache(maxsize=100)
 def load_view(directory: Path) -> View:
     """Expects a directory with all relevant information for a single image."""
 
@@ -23,16 +21,32 @@ def load_view(directory: Path) -> View:
 
     return View(**image_data, **inference_data, calibration_data=calibration_data, key=key)
 
-def load_views(directory: Path, ignore_list=('colmap', 'frames', 'videos', 'logs')) -> [View]:
-    """Load in all views from a directory."""
+def load_views(directory: Path, ignore_list=('colmap', 'frames', 'videos', 'logs'), min_coverage: float = 0.02) -> [View]:
+    """Load in all views from a directory.
+
+    Args:
+        directory: Directory containing all views.
+        ignore_list: List of directories to ignore.
+        min_coverage: Minimum coverage (mask area / image area) of a view to be included.
+    """
     idx = 0
     views = []
+    rejected_views = []
     for file in sorted(os.listdir(directory)):
         if os.path.isdir(directory / file) and file not in ignore_list:
             view = load_view(directory / file)
+
+            if view.mask_coverage < min_coverage:
+                rejected_views.append(view)
+                continue
+
             view.idx = idx
             views.append(view)
             idx += 1
+
+    if len(rejected_views) > 0:
+        print(f"Rejected {len(rejected_views)} views with coverage < {min_coverage}.")
+
 
     return views
 
