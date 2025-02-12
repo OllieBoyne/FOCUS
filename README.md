@@ -36,7 +36,7 @@ See the `run_focus.py` script for more options.
 |----------------------------------------------------------------------------------------------------|------------------------------------------------|------------------|
 | [TOC model](https://drive.google.com/file/d/1aU1Bf_pE7WjtWAX85ru9htQGygmTDIUV/view?usp=share_link) | A pre-trained correspondence predictor model.  | `data/toc_model` |
 | [Foot 3D](https://github.com/OllieBoyne/Foot3D)                                                    | Multi-view foot dataset for evaluating method. | `data/Foot3D`     |
-| [3D Fits](https://drive.google.com/file/d/1B0V5sRUBkj9kjv-q45jjYdSDiFEe3j-o/view?usp=share_link)   | 3D reconstructions for evaluation, as used in the paper. | data/3d_fits     |
+| [3D Fits](https://drive.google.com/file/d/1B0V5sRUBkj9kjv-q45jjYdSDiFEe3j-o/view?usp=share_link)   | 3D reconstructions for evaluation, as used in the paper. | `data/3d_fits`     |
 
 ### Citation
 
