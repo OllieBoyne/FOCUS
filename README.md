@@ -4,6 +4,8 @@
   </a>
 </p>
 
+[splash_small.webm](https://github.com/user-attachments/assets/664addb6-e46b-4b4b-8e23-96d6d252c96a)
+
 This repository contains the code for foot reconstruction using dense correspondences, as shown in our paper:
 
 > **FOCUS: Multi-View Foot Reconstruction from Synthetically Trained Dense Correspondences**  \
