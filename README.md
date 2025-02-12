@@ -14,10 +14,9 @@ This repository contains the code for foot reconstruction using dense correspond
 ## Set-up
 
 1) `git clone --recurse-submodules https://github.com/OllieBoyne/FOCUS.git`
-2) Install dependencies: `pip install -r requirements.txt`
-3) Install FOCUS: `pip install --editable .`
-4) Download any required data (see Downloads section).
-5) If using uncalibrated images, install [COLMAP](https://colmap.github.io/install.html).
+2) Install FOCUS and dependencies: `pip install --editable .`
+3) Download any required data (see Downloads section).
+4) If using uncalibrated images, install [COLMAP](https://colmap.github.io/install.html).
 
 ## Usage
 
