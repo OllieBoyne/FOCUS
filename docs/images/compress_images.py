@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 quality='65-80'
-folder = 'itw'
+folder = 'logos'
 out_folder = f'{folder}_compressed'
 
 # Get all sub files recursively
