@@ -4,6 +4,7 @@ import os
 
 # Avoid issues compiling PyTorch3D on Mac.
 os.environ['MAX_JOBS'] = '1'
+skip_pytorch3d = os.environ.get('SKIP_PYTORCH3D', '0') == '1'
 
 # Install PyTorch  & PyTorch3D first (necessary for PyTorch3D).
 with open("requirements.txt") as f:
@@ -13,6 +14,9 @@ with open("requirements.txt") as f:
 
 with open('requirements.txt') as f:
     install_requires = f.read().splitlines()
+
+    if skip_pytorch3d:
+        install_requires = [line for line in install_requires if not line.startswith('pytorch3d')]
 
 setup(
     name='focus',
