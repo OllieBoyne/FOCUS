@@ -16,7 +16,7 @@ This repository contains the code for foot reconstruction using dense correspond
 ## Set-up
 
 1) `git clone --recurse-submodules https://github.com/OllieBoyne/FOCUS.git`
-2) Install FOCUS and dependencies: `pip install --editable .`
+2) Install FOCUS and dependencies: `pip install --editable .`[^1]
 3) Download any required data (see Downloads section).
 4) If using uncalibrated images, install [COLMAP](https://colmap.github.io/install.html).
 
@@ -51,3 +51,5 @@ If you use our work, please cite:
             year={2025}
 }
 ```
+
+[^1]: Use environment variable `SKIP_PYTORCH3D=1` if you need to install PyTorch3D separately (e.g. in Windows)
