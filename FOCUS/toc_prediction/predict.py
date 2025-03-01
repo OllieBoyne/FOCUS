@@ -115,7 +115,7 @@ def predict_toc(imgs: np.ndarray, model: FootPredictorModel | Path, out_dir: Pat
                         'NORM_UNC_VMAX': NORM_UNC_VMAX,
                     }
 
-                    with open(os.path.join(out_folder, 'aux.json'), 'w') as f:
+                    with open(os.path.join(out_folder, 'extra_preds.json'), 'w') as f:
                         json.dump(aux_data, f)
 
                     progress_bar.update(1)
