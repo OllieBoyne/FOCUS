@@ -13,7 +13,7 @@ ACCEPTED_IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
 def _check_colmap(colmap_exe: str = 'colmap'):
     try:
-        subprocess.check_call(['colmap', 'help'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.check_call([colmap_exe, 'help'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     except FileNotFoundError:
         raise FileNotFoundError(f'`{colmap_exe}` does not run. Make sure COLMAP is installed, and either added to PATH, or the `colmap_exe` argument points to the correct location.')
 
@@ -71,7 +71,7 @@ def run_colmap(image_dir: Path, output_dir: Path, colmap_exe: str = 'colmap',
 
             # Run subprocess check call, saving output to log file.
             logfile = workspace_dir / f'{method}_log.txt'
-            subprocess.check_call(args, stdout=open(logfile, 'w'), stderr=subprocess.STDOUT)
+            subprocess.check_call(args, stdout=open(logfile, 'w'), stderr=subprocess.STDOUT, shell=True)
 
     # Convert to PyTorch3D format
     output_data = colmap2pytorch3d(str(sparse_dir))

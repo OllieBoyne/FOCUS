@@ -29,6 +29,7 @@ parser.add_argument('--method', type=str, default='sfm', choices=['sfm', 'o'],
                     help='Method to use for reconstruction (sfm or o).')
 
 parser.add_argument('--make_predictions', action='store_true', help='Predictions do not exist: make predictions for TOC and normals.')
+parser.add_argument('--toc_batch_size', type=int, default=10, help='Batch size for TOC predictions.')
 
 parser.add_argument("--source_folder", type=Path, help="Directory of source images/predictions.")
 
@@ -149,7 +150,7 @@ if __name__ == "__main__":
         images, keys = io.load_images_from_dir(source_folder)
 
         predict_toc_module.predict_toc(images, args.toc_model_path,
-                    args.output_folder, keys
+                    args.output_folder, keys, batch_size=args.toc_batch_size
         )
 
         run_colmap.run_colmap(source_folder, args.output_folder, colmap_exe=args.colmap_exe,

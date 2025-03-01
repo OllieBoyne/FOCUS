@@ -32,7 +32,7 @@ def _preprocess_image(img: np.ndarray):
     return img
 
 def predict_toc(imgs: np.ndarray, model: FootPredictorModel | Path, out_dir: Path, img_keys: list[str],
-                device=None):
+                device=None, batch_size=10):
     """Make predictions using a trained model.
 
     imgs: RGBA images."""
@@ -57,7 +57,7 @@ def predict_toc(imgs: np.ndarray, model: FootPredictorModel | Path, out_dir: Pat
 
     model.eval()
 
-    dataloader = torch.utils.data.DataLoader(Dataset(), batch_size=10, shuffle=False)
+    dataloader = torch.utils.data.DataLoader(Dataset(), batch_size=batch_size, shuffle=False)
 
     with torch.no_grad():
         with tqdm(total=N) as progress_bar:
