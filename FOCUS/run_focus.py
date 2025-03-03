@@ -15,6 +15,7 @@ from FOCUS.data import io
 from FOCUS.toc_prediction import predict as predict_toc_module
 from FOCUS.calibration import run_colmap
 from FOCUS.utils.image import resize_preserve_aspect
+from FOCUS.utils.video import get_frame_count
 
 from FOCUS.fusion import fuse
 from FOCUS.data.dataset import load_views
@@ -72,16 +73,15 @@ def _frames_from_video(args):
     image_dir = args.output_folder / 'frames'
     image_dir.mkdir(exist_ok=True, parents=True)
 
-    frame_count_cmd = f"ffmpeg -i {args.video_path} -map 0:v:0 -c copy -f null - 2>&1 | grep 'frame=' | awk '{{print $2}}'"
-    total_frames = int(os.popen(frame_count_cmd).read().strip())
+    total_frames = get_frame_count(args.video_path)
     desired_frames = args.num_frames if args.num_frames != -1 else total_frames
     interval = max(1, round(total_frames / desired_frames))
 
-    args = ['ffmpeg', '-i', str(args.video_path),
+    split_frames_command = ['ffmpeg', '-i', str(args.video_path),
             "-vf", f"select='not(mod(n,{interval}))'",
             '-vsync', 'vfr', f'{image_dir}/%06d.png']
 
-    subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.run(split_frames_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # If too many frames added, remove some.
     output_frames = sorted([f for f in os.listdir(image_dir) if f.endswith('.png')])
