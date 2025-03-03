@@ -57,13 +57,23 @@ CREATE_DESCRIPTORS_TABLE = """CREATE TABLE IF NOT EXISTS descriptors (
     data BLOB,
     FOREIGN KEY(image_id) REFERENCES images(image_id) ON DELETE CASCADE)"""
 
+# CUSTOM COMMAND HERE TO AVOID CRASHES ON WINDOWS.
+# Instead of a minimal schema, use COLMAP's expected schema:
 CREATE_IMAGES_TABLE = """CREATE TABLE IF NOT EXISTS images (
     image_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     name TEXT NOT NULL UNIQUE,
     camera_id INTEGER NOT NULL,
+    prior_qw REAL,
+    prior_qx REAL,
+    prior_qy REAL,
+    prior_qz REAL,
+    prior_tx REAL,
+    prior_ty REAL,
+    prior_tz REAL,
     CONSTRAINT image_id_check CHECK(image_id >= 0 and image_id < {}),
-    FOREIGN KEY(camera_id) REFERENCES cameras(camera_id))
-""".format(MAX_IMAGE_ID)
+    FOREIGN KEY(camera_id) REFERENCES cameras(camera_id)
+)""".format(MAX_IMAGE_ID)
+
 
 CREATE_POSE_PRIORS_TABLE = """CREATE TABLE IF NOT EXISTS pose_priors (
     image_id INTEGER PRIMARY KEY NOT NULL,
@@ -199,14 +209,10 @@ class COLMAPDatabase(sqlite3.Connection):
         )
         return cursor.lastrowid
 
-    def add_image(
-        self,
-        name,
-        camera_id,
-        image_id=None,
-    ):
+    def add_image(self, name, camera_id, image_id=None):
         cursor = self.execute(
-            "INSERT INTO images VALUES (?, ?, ?)", (image_id, name, camera_id)
+            "INSERT INTO images (image_id, name, camera_id, prior_qw, prior_qx, prior_qy, prior_qz, prior_tx, prior_ty, prior_tz) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (image_id, name, camera_id, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         )
         return cursor.lastrowid
 
