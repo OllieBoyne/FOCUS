@@ -8,7 +8,7 @@
 
 This repository contains the code for foot reconstruction using dense correspondences, as shown in our paper:
 
-> **FOCUS: Multi-View Foot Reconstruction from Synthetically Trained Dense Correspondences**  \
+> **FOCUS - Multi-View Foot Reconstruction from Synthetically Trained Dense Correspondences**  \
 > 3DV 2025 \
 > [Oliver Boyne](https://ollieboyne.github.io) and [Roberto Cipolla](https://mi.eng.cam.ac.uk/~cipolla/) \
 > [[arXiv]](https://arxiv.org/abs/2502.06367) [[project page]](https://ollieboyne.github.io/FOCUS/)
@@ -45,7 +45,7 @@ If you use our work, please cite:
 
 ```
 @inproceedings{boyne2025focus,
-            title={FOCUS: Multi-View Foot Reconstruction from Synthetically Trained Dense Correspondences},
+            title={FOCUS - Multi-View Foot Reconstruction from Synthetically Trained Dense Correspondences},
             author={Boyne, Oliver and Cipolla, Roberto},
             booktitle={2025 International Conference on 3D Vision (3DV)},
             year={2025}
