@@ -8,7 +8,7 @@ import numpy as np
 from pathlib import Path
 import dataclasses
 import pandas as pd
-
+import argparse
 
 def cutoff_slice_FIND(mesh: trimesh.Trimesh, height: float = 0.1):
     """Cutoff at FIND height."""
@@ -191,3 +191,16 @@ def evaluate_mesh(
         print(stats_df_print.head(3))
 
     return stats_df
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--gt', type=Path, required=True, help="Path to GT mesh.")
+    parser.add_argument('--pred', type=Path, required=True, help="Path to predicted mesh.")
+    parser.add_argument('--is_find', action='store_true')
+    parser.add_argument('--save_evaluated_mesh', action='store_true')
+
+    args = parser.parse_args()
+
+    evaluate_mesh(args.gt, args.pred, silent=False,  is_find=args.is_find, save_evaluated_mesh=args.save_evaluated_mesh)
